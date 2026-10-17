@@ -55,4 +55,4 @@ TypeScript · React Native · Vega OS SDK · Vega Virtual Device · react-tv-spa
 
 ## Open Source mini challenge
 
-Contribution: a pull request to `AmazonAppDev/react-native-multi-tv-app-sample` that moves the Vega build to `build-vega`, makes both Metro configs auto-discover `packages/*` workspaces, and documents shared packages. These were real problems we hit while building Fastbreak (friction log #3 and #5). The fields to paste are in `PR_INSTRUCTIONS.md`, one folder up.
+Contribution: a pull request to `AmazonAppDev/react-native-multi-tv-app-sample` that makes both Metro configs auto-discover `packages/*` workspaces and documents shared packages (friction log #5). The `build-vega` fix (#3) was dropped because maintainer PR #132 already does it. The PR also reports the build-rewrites-tracked-files issue (#9). The fields to paste are in `PR_INSTRUCTIONS.md`, one folder up.

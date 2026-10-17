@@ -19,7 +19,7 @@ Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) 
 ### 3. The sample app uses a deprecated build command (low)
 - **Task:** Build the multi-TV sample on Vega.
 - **Actual:** Every build prints "This command is deprecated… replace usage with 'build-vega'", because the sample's scripts call `build-kepler`.
-- **Suggestion:** Update `react-native-multi-tv-app-sample` scripts to `build-vega`. **We opened a PR that does this.**
+- **Suggestion:** Update `react-native-multi-tv-app-sample` scripts to `build-vega`. (Maintainer PR #132 already does this.)
 
 ### 4. Sample install prints peer-dependency warnings for Amazon packages (low)
 - **Actual:** `yarn install` reports that `@multi-tv/vega` doesn't provide `@amazon-devices/keplerscript-turbomodule-api` (requested by `kepler-media-controls`), plus Babel plugin peers for `react-native-reanimated`.
@@ -50,3 +50,9 @@ Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) 
 - **Task:** Let viewers ask for a specific game by voice.
 - **Actual:** The runtime privileges page mentions microphone access but lists no privilege IDs, and we found no speech-recognition API for apps.
 - **Suggestion:** Document whether apps can get transcribed utterances (for example a "voice search" intent from Alexa), and list the microphone privilege ID.
+
+### 9. The Vega build rewrites tracked source files (low–medium)
+- **Task:** Build the multi-TV sample (and our app on top of it) with `yarn build:vega`, then commit.
+- **Actual:** After every build, `git status` shows two modified tracked files. `apps/vega/manifest.toml` gets the autolinked `[[needs.module]]` entries appended, and `apps/vega/buildinfo.json` is rewritten with absolute paths from the build machine. The sample's committed `buildinfo.json` already contains a maintainer's local paths, and we committed our own paths by accident.
+- **Workaround:** Stopped tracking `buildinfo.json` (`.gitignore`). Committed the autolinked manifest entries once, so later builds leave the file unchanged.
+- **Suggestion:** Write autolinking results to the build directory rather than the source manifest, and don't commit `buildinfo.json` in samples or templates. We flagged this in our PR to the sample.
