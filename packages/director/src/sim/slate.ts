@@ -1,4 +1,5 @@
 import { makeRng, between } from '../rng';
+import { Director } from '../director';
 import type { ChannelRef, FeedEvent, GameInfo } from '../types';
 import { TEAMS } from './teams';
 import { simulateGame } from './simulateGame';
@@ -41,4 +42,23 @@ export function buildSlate(seed: number, nGames = 8): Slate {
     .flatMap((g, i) => simulateGame(g, { seed: seed * 101 + i * 7919 }))
     .sort((a, b) => a.t - b.t || a.gameId.localeCompare(b.gameId) || a.seq - b.seq);
   return { seed, games, events, endsAt: events[events.length - 1].t };
+}
+
+/**
+ * A good moment to start a demo: a few minutes before the director first goes to
+ * split screen (two games in crunch time), falling back to the second 4th quarter.
+ */
+export function suggestDemoStart(slate: Slate, leadMs = 240_000): number {
+  const d = new Director(slate.games);
+  let i = 0;
+  for (let t = 0; t <= slate.endsAt; t += 2000) {
+    while (i < slate.events.length && slate.events[i].t <= t) d.ingest(slate.events[i++]);
+    const v = d.tick(t);
+    if (v.layout !== 'single') return Math.max(0, t - leadMs);
+  }
+  const q4 = slate.games
+    .map((g) => slate.events.find((e) => e.gameId === g.id && e.type === 'period_start' && e.period === 4)?.t)
+    .filter((t): t is number => t !== undefined)
+    .sort((a, b) => a - b);
+  return Math.max(0, (q4[1] ?? q4[0] ?? 0) - leadMs);
 }

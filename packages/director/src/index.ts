@@ -6,7 +6,7 @@ export { BREAK_DURATION_MS, breakHazard, breakRemainingMs, currentRun, isCommerc
 export { matchup, periodLabel, clockLabel, durationLabel, situation, scoreLine, whyWatch, BREAK_NAMES } from './explain';
 export { ReplayLineupSource } from './lineup';
 export type { LineupSource, PlaybackController } from './lineup';
-export { buildSlate } from './sim/slate';
+export { buildSlate, suggestDemoStart } from './sim/slate';
 export type { Slate } from './sim/slate';
 export { simulateGame } from './sim/simulateGame';
 export { TEAMS, TEAM_BY_CODE } from './sim/teams';

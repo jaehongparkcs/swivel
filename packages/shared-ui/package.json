@@ -18,5 +18,8 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.7.0"
+  },
+  "dependencies": {
+    "@fastbreak/director": "workspace:*"
   }
 }

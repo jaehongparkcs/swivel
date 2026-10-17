@@ -39,7 +39,8 @@
     "react-native-keyevent": "*",
     "react-native-pixel-perfect": "*",
     "react-native-video": "*",
-    "react-tv-space-navigation": "*"
+    "react-tv-space-navigation": "*",
+    "@fastbreak/director": "workspace:*"
   },
   "devDependencies": {
     "@amazon-devices/kepler-cli-platform": "^0",

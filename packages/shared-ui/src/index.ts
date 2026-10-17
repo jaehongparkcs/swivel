@@ -1,3 +1,6 @@
+// Fastbreak
+export { default as FastbreakApp } from './fastbreak/FastbreakApp';
+
 // Main App Navigator
 export { default as AppNavigator } from './navigation/AppNavigator';
 export type { AppNavigatorProps } from './navigation/AppNavigator';

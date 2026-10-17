@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: MIT-0
 
 import React from 'react';
-import VegaAppNavigator from './navigation/VegaAppNavigator';
-import '../../../packages/shared-ui/src/app/configureRemoteControl';
+import { FastbreakApp } from '@multi-tv/shared-ui';
 
 export const App = () => {
-  return <VegaAppNavigator fontsLoaded={true} />;
+  return <FastbreakApp />;
 };
- 

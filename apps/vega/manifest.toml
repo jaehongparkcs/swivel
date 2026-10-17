@@ -5,7 +5,7 @@
 schema-version = 1
 
 [package]
-title = "Multi TV Vega App"
+title = "Fastbreak"
 version = "0.1.0"
 id = "com.giolaq.multitv.vega"
 
