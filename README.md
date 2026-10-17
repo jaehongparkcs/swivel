@@ -2,7 +2,7 @@
 
 **A break-aware, preference-aware auto-director for watching many live games at once.** You give it each game's play-by-play and the channels it airs on. It decides what's on screen: which game, when to hop away for a commercial and when to come back, when to split the screen two, three or four ways, and why.
 
-Pure TypeScript, zero runtime dependencies, runs anywhere: TV apps, web, Node. It powers [Fastbreak](https://github.com/), an autopilot sports app for Fire TV (Vega OS).
+Pure TypeScript, zero runtime dependencies, runs anywhere: TV apps, web, Node. It powers Fastbreak, an autopilot sports app for Fire TV (Vega OS).
 
 ```ts
 import { Director, ReplayLineupSource, buildSlate } from '@fastbreak/director';
