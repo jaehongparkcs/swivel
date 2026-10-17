@@ -16,7 +16,7 @@ export interface DemoConfig {
  * three-up crunch time, commercials collapsing the grid, and Tampa going to OT.
  * Found with packages/director/scripts/findDemo.ts.
  */
-export const DEFAULT_DEMO: DemoConfig = { seed: 51, speed: 6, startAt: 5_960_000, favorites: ['TPA'] };
+export const DEFAULT_DEMO: DemoConfig = { seed: 51, speed: 8, startAt: 5_960_000, favorites: ['TPA'] };
 
 /** On web, ?seed=74&speed=8&start=7800 (seconds) overrides the defaults. */
 export function readDemoConfig(): DemoConfig {

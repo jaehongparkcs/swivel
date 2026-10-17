@@ -7,7 +7,8 @@ schema-version = 1
 [package]
 title = "Fastbreak"
 version = "0.1.0"
-id = "com.giolaq.multitv.vega"
+icon = "@image/fastbreak_icon.png"
+id = "com.jaepark.fastbreak"
 
 [os.version]
 min = "1.2"
@@ -15,7 +16,7 @@ target = "1.2"
 
 [components]
 [[components.interactive]]
-id = "com.giolaq.multitv.vega.main"
+id = "com.jaepark.fastbreak.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 categories = [
@@ -28,7 +29,7 @@ categories = [
 ## ------------------------------------------------------------------------------
 [processes]
 [[processes.group]]
-component-ids = ["com.giolaq.multitv.vega.main"]
+component-ids = ["com.jaepark.fastbreak.main"]
 
 ## ------------------------------------------------------------------------------
 ## Wants - Optional capabilities
@@ -199,19 +200,19 @@ id = "/com.amazon.kepler.navigation__routers_7@INavigation__Routers_0"
 id = "com.amazon.gipc.uuid.*"
 
 [[offers.interaction]]
-id = "com.giolaq.multitv.vega.main"
+id = "com.jaepark.fastbreak.main"
 
 [[offers.module]]
-id = "/com.giolaq.multitv.vega.main@IMod1"
+id = "/com.jaepark.fastbreak.main@IMod1"
 includes-messages = [
-    "pkg://com.giolaq.multitv.vega.main"
+    "pkg://com.jaepark.fastbreak.main"
 ]
 
 ## ------------------------------------------------------------------------------
 ## Message
 ## ------------------------------------------------------------------------------
 [[message]]
-uri = "pkg://com.giolaq.multitv.vega.main"
+uri = "pkg://com.jaepark.fastbreak.main"
 sender-privileges = ["*"]
 receiver-privileges = ["self"]
 
@@ -220,7 +221,7 @@ receiver-privileges = ["self"]
 ## ------------------------------------------------------------------------------
 [[extras]]
 key = "interface.provider"
-component-id = "com.giolaq.multitv.vega.main"
+component-id = "com.jaepark.fastbreak.main"
 
 [extras.value.application]
 # ------------------------------------------------------------------------------
@@ -229,7 +230,7 @@ component-id = "com.giolaq.multitv.vega.main"
 [[extras.value.application.interface]]
 interface_name = "com.amazon.kepler.media.IContentLauncherServer"
 attribute_options = ["partner-id"]
-static-values = { partner-id = "MULTI_TV" }
+static-values = { partner-id = "FASTBREAK" }
 
 # ------------------------------------------------------------------------------
 # Vega Media Controls (VMC)

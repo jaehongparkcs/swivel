@@ -73,7 +73,7 @@
   },
   "kepler": {
     "projectType": "application",
-    "appName": "MultiTVVega",
+    "appName": "Fastbreak",
     "targets": [
       "tv"
     ]
