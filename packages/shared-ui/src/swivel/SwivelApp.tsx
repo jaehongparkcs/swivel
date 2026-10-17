@@ -1,24 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { DEFAULT_PREFS, type TeamPrefs } from '@fastbreak/director';
+import { DEFAULT_PREFS, type TeamPrefs } from '@swivel/director';
 import RemoteControlManager from '../app/remote-control/RemoteControlManager';
 import { SupportedKeys } from '../app/remote-control/SupportedKeys';
 import { readDemoConfig, SPEEDS } from './demoConfig';
-import { useFastbreak } from './useFastbreak';
+import { useSwivel } from './useSwivel';
 import Stage, { STAGE_W } from './Stage';
 import GameRail from './GameRail';
 import DirectorCaption from './DirectorCaption';
 import StatusBar from './StatusBar';
 import TeamsScreen, { cycleTeam, LOYALTIES, TEAM_COLS, teamsGrid } from './TeamsScreen';
 import { fb, px } from './theme';
-import { TEAMS } from '@fastbreak/director';
+import { TEAMS } from '@swivel/director';
 
 type Focus = { zone: 'rail'; index: number } | { zone: 'stage'; index: number };
 
 
-export default function FastbreakApp() {
+export default function SwivelApp() {
   const config = useMemo(() => readDemoConfig(), []);
-  const fbk = useFastbreak(config, { ...DEFAULT_PREFS, loyalty: 'team-first', favorites: config.favorites, likes: [] });
+  const fbk = useSwivel(config, { ...DEFAULT_PREFS, loyalty: 'team-first', favorites: config.favorites, likes: [] });
   const { view } = fbk;
   const [screen, setScreen] = useState<'watch' | 'teams'>('watch');
   const [focus, setFocus] = useState<Focus | null>(null);
@@ -121,7 +121,7 @@ export default function FastbreakApp() {
       <View style={styles.main}>
         <View>
           <View style={styles.brandRow}>
-            <Text style={styles.brand}>Fastbreak</Text>
+            <Text style={styles.brand}>Swivel</Text>
             <Text style={styles.brandSub}>Autopilot for tonight's games</Text>
           </View>
           <Stage view={view} focusedSlot={focus?.zone === 'stage' ? focus.index : null} />

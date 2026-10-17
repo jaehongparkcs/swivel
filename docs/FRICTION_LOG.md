@@ -1,6 +1,6 @@
 # Friction log
 
-Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) on an Apple Silicon Mac. Severity: low / medium / high.
+Entries come from actually building Swivel on Vega SDK 0.24 (Vega CLI 1.4.5) on an Apple Silicon Mac. Severity: low / medium / high.
 
 ### 1. Build number: the warning points to a manifest key that isn't documented (low)
 - **Task:** Clear `WARNING: build_number is 0` during `yarn build:vega`.
@@ -32,7 +32,7 @@ Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) 
 - **Suggestion:** Have the sample resolve all `packages/*` automatically, or document the steps in the README. **Our PR does both.**
 
 ### 6. No documented way to test Content Launcher (Alexa) requests on the Virtual Device (medium)
-- **Task:** Explore "Alexa, watch the Tampa game on Fastbreak".
+- **Task:** Explore "Alexa, watch the Tampa game on Swivel".
 - **Steps:** Read the Content Launcher integration guide and the VDA tools page.
 - **Expected:** A CLI command to send a launch or search request to an app on the VVD.
 - **Actual:** No such command is documented, so the voice path can't be demoed or tested without a device and catalog integration.
@@ -40,7 +40,7 @@ Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) 
 - **Suggestion:** Add something like `vega device content-launch --app <id> --query "..."` for the VVD.
 
 ### 7. Live TV APIs: unclear what third-party apps may do (medium, high for this product)
-- **Task:** Design Fastbreak to drive the viewer's own live TV lineup.
+- **Task:** Design Swivel to drive the viewer's own live TV lineup.
 - **Steps:** Read the Vega Live TV API overview (Channel Tuning, EPG Provider, EPG Sync Scheduler).
 - **Actual:** The docs don't say whether a third-party app can tune *other providers'* channels, read the system EPG, or show multiple live channels at once (multiview / picture-in-picture).
 - **Impact:** We had to build against a simulated lineup and pitch the integration as future work.

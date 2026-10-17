@@ -13,6 +13,12 @@ export interface SimOptions {
   homeEdge?: number;
   /** 0..1 pull of the trailing team back toward even late in games. */
   rubberBand?: number;
+  /**
+   * Real feeds often report "play resumes" 5–15 s after it happens. When set,
+   * each resume event is published a random [min, max] ms late (never past the
+   * game's next event). Off by default, so the feed is perfectly timed.
+   */
+  resumeLagMs?: readonly [number, number];
 }
 
 const PERIOD = 720;
@@ -154,7 +160,7 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
       emit('period_end', `End of ${period <= 4 ? `Q${period}` : `OT${period - 4}`}`, {}, false);
       if (period >= 4 && score.home !== score.away) {
         emit('game_end', `Final: ${info.away.code} ${score.away}, ${info.home.code} ${score.home}`, {}, false);
-        return events;
+        return withResumeLag(events, opts);
       }
       t += wall(period === 2 ? 'halftime' : period >= 4 ? 'overtime' : 'quarter');
       period++;
@@ -238,4 +244,17 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
 
     if (dead) deadBall(deadAgainst && lastScorer !== deadAgainst ? deadAgainst : undefined);
   }
+}
+
+/** Publish each "play resumes" late, using its own RNG so the game itself is unchanged. */
+function withResumeLag(events: FeedEvent[], opts: SimOptions): FeedEvent[] {
+  if (!opts.resumeLagMs) return events;
+  const [lo, hi] = opts.resumeLagMs;
+  const rng = makeRng(opts.seed ^ 0x5eed1a6);
+  return events.map((e, i) => {
+    if (e.type !== 'resume') return e;
+    const next = events[i + 1];
+    const lagged = e.t + Math.round(between(rng, lo, hi));
+    return { ...e, t: next ? Math.min(lagged, next.t) : lagged };
+  });
 }

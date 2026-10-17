@@ -7,10 +7,10 @@ import {
   type DirectorView,
   type TeamPrefs,
   type TasteSnapshot,
-} from '@fastbreak/director';
+} from '@swivel/director';
 import { Platform } from 'react-native';
 
-const TASTE_KEY = 'fastbreak.taste.v1';
+const TASTE_KEY = 'swivel.taste.v1';
 
 /**
  * Learned taste survives reloads on web (localStorage). On Vega this is
@@ -42,8 +42,9 @@ const TICK_MS = 250;
  * Hosts the director against a replayed slate. On a device this is where a
  * Vega EPG-backed LineupSource and a PlaybackController would be wired in.
  */
-export function useFastbreak(config: DemoConfig, initialPrefs: TeamPrefs) {
-  const slate = useMemo(() => buildSlate(config.seed), [config.seed]);
+export function useSwivel(config: DemoConfig, initialPrefs: TeamPrefs) {
+  const lag = config.resumeLagMs;
+  const slate = useMemo(() => buildSlate(config.seed, 8, { resumeLagMs: lag }), [config.seed, lag?.[0], lag?.[1]]);
   const source = useMemo(() => new ReplayLineupSource(slate), [slate]);
   const director = useMemo(() => new Director(source.games(), initialPrefs, {}, loadTaste()), [source]);
 

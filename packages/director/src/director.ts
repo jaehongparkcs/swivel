@@ -68,6 +68,8 @@ export class Director {
    * cascade back through every game we passed through.
    */
   private anchor?: string;
+  /** Set when the anchor came from tuning in, so the viewer was never actually on it. */
+  private anchorFromStartup = false;
   private lastSwitchAt = -Infinity;
   private lastLayoutAt = -Infinity;
   private manualHoldUntil = -Infinity;
@@ -89,6 +91,7 @@ export class Director {
     }
     this.prefs = prefs;
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.learner.setPrior((code) => this.explicitAffinity(code));
   }
 
   // ---------------------------------------------------------------- inputs
@@ -105,6 +108,13 @@ export class Director {
     this.prefs = prefs;
   }
 
+  /** Explicit preference for a team: 1 for a favorite, 0.5 for a like. */
+  private explicitAffinity(code: string): number {
+    if (this.prefs.favorites.includes(code)) return 1;
+    if (this.prefs.likes.includes(code)) return 0.5;
+    return 0;
+  }
+
   getPrefs(): TeamPrefs {
     return this.prefs;
   }
@@ -117,7 +127,7 @@ export class Director {
       title: this.locked ? 'Autopilot paused' : 'Autopilot on',
       detail: this.locked
         ? `Staying on ${primary ? matchup(primary) : 'this game'} until you unlock.`
-        : 'Fastbreak will hop on breaks and bring you to tight games.',
+        : 'Swivel will hop on breaks and bring you to tight games.',
     });
   }
 
@@ -180,7 +190,7 @@ export class Director {
 
   resetLearning(t: number): void {
     this.learner.reset();
-    this.log(t, 'learned', { title: 'Forgot what Fastbreak learned', detail: 'Starting fresh from your teams.' });
+    this.log(t, 'learned', { title: 'Forgot what Swivel learned', detail: 'Starting fresh from your teams.' });
   }
 
   tasteSnapshot(): TasteSnapshot {
@@ -345,7 +355,10 @@ export class Director {
     this.lastLayoutAt = t - GROW_MS; // multiview may start right away
     // Tuning in while your team is on a break: come back to them when play resumes.
     const yours = all.find((g) => g.tags.includes('team-game') && g.screen.phase === 'break');
-    if (yours && yours.info.id !== first.info.id) this.anchor = yours.info.id;
+    if (yours && yours.info.id !== first.info.id) {
+      this.anchor = yours.info.id;
+      this.anchorFromStartup = true;
+    }
     const why = whyWatch(first);
     this.log(t, 'start', {
       to: first.info.id,
@@ -404,7 +417,10 @@ export class Director {
             ? 'Back for the 2nd half.'
             : 'Back the moment play resumes.';
       if (alt.tags.includes('team-game')) this.anchor = undefined; // already where you want to be
-      else if (!this.anchor || this.anchor === alt.info.id) this.anchor = P.info.id;
+      else if (!this.anchor || this.anchor === alt.info.id) {
+        this.anchor = P.info.id;
+        this.anchorFromStartup = false;
+      }
       const why = whyWatch(alt);
       this.switchPrimary(
         t,
@@ -422,8 +438,14 @@ export class Director {
     else if (R && this.eligible(R)) {
       this.anchor = undefined;
       const yours = R.tags.includes('team-game');
+      const neverThere = this.anchorFromStartup;
+      this.anchorFromStartup = false;
       if (yours || R.watchScore >= P.watchScore - c.returnBias) {
-        this.switchPrimary(t, R, 'return', `Play resumed in ${matchup(R.info)}`, `${yours ? 'Your team. ' : ''}Taking you back · ${situation(R)}.`);
+        if (neverThere) {
+          this.switchPrimary(t, R, 'return', `Your team is back on`, `Play resumed in ${matchup(R.info)} · ${situation(R)}.`);
+        } else {
+          this.switchPrimary(t, R, 'return', `Play resumed in ${matchup(R.info)}`, `${yours ? 'Your team. ' : ''}Taking you back · ${situation(R)}.`);
+        }
       } else {
         this.log(t, 'hold', {
           from: P.info.id,
@@ -603,7 +625,10 @@ export class Director {
     // If a game we were featuring is on a break, remember it so we come back.
     for (const id of this.slots) if (byId.get(id)?.screen.phase === 'break') this.benched.add(id);
     const pending = prevAudio && byId.get(prevAudio);
-    if (pending && pending.info.id !== keep.info.id && pending.screen.phase === 'break') this.anchor = pending.info.id;
+    if (pending && pending.info.id !== keep.info.id && pending.screen.phase === 'break') {
+      this.anchor = pending.info.id;
+      this.anchorFromStartup = false;
+    }
     this.log(t, 'multiview-off', { to: keep.info.id, title, detail: `Full screen: ${matchup(keep.info)} · ${situation(keep)}.` });
   }
 

@@ -1,5 +1,5 @@
 {
-  "name": "@fastbreak/director",
+  "name": "@swivel/director",
   "version": "0.1.0",
   "private": true,
   "description": "Break-aware, preference-aware auto-director for multi-game live sports viewing. Pure TypeScript, no platform dependencies.",

@@ -45,6 +45,31 @@ test('hops on a timeout and returns when play resumes', () => {
   assert.equal(v.decisions[v.decisions.length - 1].kind, 'return');
 });
 
+test('tuning in while your team is on a break: "your team is back on", not "taking you back"', () => {
+  const A = game('A', 0);
+  const B = game('B', 1);
+  const a = feed('A');
+  const b = feed('B');
+  const d = new Director([A, B], { ...prefs, favorites: [A.home.code] });
+  const events = [
+    a(0, 'tipoff', 1, 720, 0, 0),
+    b(0, 'tipoff', 1, 720, 0, 0),
+    a(10, 'timeout', 1, 710, 0, 0, { team: 'away' }),
+    a(200, 'resume', 1, 710, 0, 0),
+  ];
+  for (const e of events.filter((e) => e.t <= 20_000)) d.ingest(e);
+  let v = d.tick(20_000);
+  assert.deepEqual(v.slots, ['B'], 'starts on the live game');
+  assert.equal(v.returnTo, 'A');
+  for (const e of events.filter((e) => e.t > 20_000)) d.ingest(e);
+  for (let t = 21_000; t <= 210_000; t += 1000) v = d.tick(t);
+  assert.deepEqual(v.slots, ['A'], 'brought to your team');
+  const last = v.decisions[v.decisions.length - 1];
+  assert.equal(last.kind, 'return');
+  assert.equal(last.title, 'Your team is back on');
+  assert.ok(!/Taking you back/.test(last.detail));
+});
+
 test('uses feed lookahead: never switches into a game whose break is about to hit the stream', () => {
   const A = game('A', 0, 0);
   const B = game('B', 1, 40_000); // B's video lags its feed by 40s
@@ -162,4 +187,27 @@ test('slates are deterministic', () => {
   const y = buildSlate(5);
   assert.equal(x.events.length, y.events.length);
   assert.deepEqual(x.events.slice(-3), y.events.slice(-3));
+});
+
+test('optional resume-report lag: resumes land 5–15 s late, nothing else moves', () => {
+  const x = buildSlate(5);
+  const y = buildSlate(5, 8, { resumeLagMs: [5000, 15_000] });
+  assert.equal(x.events.length, y.events.length);
+  const key = (e: FeedEvent) => `${e.gameId}:${e.seq}`;
+  const lagged = new Map(y.events.map((e) => [key(e), e]));
+  let late = 0;
+  for (const e of x.events) {
+    const l = lagged.get(key(e))!;
+    if (e.type !== 'resume') assert.equal(l.t, e.t);
+    else {
+      assert.ok(l.t >= e.t && l.t <= e.t + 15_000);
+      if (l.t >= e.t + 5000) late++;
+    }
+  }
+  assert.ok(late > 0);
+  // Per game, the feed stays in order.
+  for (const g of y.games) {
+    const ts = y.events.filter((e) => e.gameId === g.id).map((e) => e.t);
+    assert.ok(ts.every((t, i) => i === 0 || t >= ts[i - 1]));
+  }
 });

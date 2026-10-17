@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import type { DirectorView, GameInsight } from '@fastbreak/director';
+import type { DirectorView, GameInsight } from '@swivel/director';
 import BroadcastTile from './BroadcastTile';
 import { fb, px, type } from './theme';
 

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT-0
 
 import React from 'react';
-import { FastbreakApp } from '@multi-tv/shared-ui';
+import { SwivelApp } from '@multi-tv/shared-ui';
 
 export const App = () => {
-  return <FastbreakApp />;
+  return <SwivelApp />;
 };

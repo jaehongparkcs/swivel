@@ -5,14 +5,14 @@
 
 ---
 
-## Fastbreak: autopilot for a night of live basketball
+## Swivel: autopilot for a night of live basketball
 
 ### Inspiration
-On a busy night there are ten games on and you care about one team. Every timeout you're staring at the same commercials while somewhere else a game is coming down to the last possession. RedZone solved this for one league and one network. We wanted it for *your* teams, across *your* live TV lineup, without touching the remote.
+On a busy night there are ten games on and you care about one team. Every timeout you're staring at the same commercials while somewhere else a game is coming down to the last possession. NBA CrunchTime and NFL RedZone solve this with one channel that's the same for everyone. Swivel is personal: it follows *your* teams, across *your* live TV lineup, with no commercials and without touching the remote.
 
 ### What it does
-- **Hops on breaks.** When your game goes to a timeout, media timeout, quarter break or halftime, Fastbreak moves you to the best live game. When play resumes, it brings you back.
-- **Knows before your stream does.** Play-by-play data runs 25–55 s ahead of the broadcast. Fastbreak uses that lead to switch at exactly the right moment. It shows a real "Back in 0:18" when it already knows play has resumed, and never invents a countdown.
+- **Hops on breaks.** When your game goes to a timeout, media timeout, quarter break or halftime, Swivel moves you to the best live game. When play resumes, it brings you back.
+- **Knows before your stream does.** Play-by-play data runs 25–55 s ahead of the broadcast. Swivel uses that lead to switch at exactly the right moment. It shows a real "Back in 0:18" when it already knows play has resumed, and never invents a countdown.
 - **Never takes you into a commercial.** If another game's feed already shows a timeout your stream hasn't reached, that game is skipped.
 - **Split, three-up and quad.** When several games are in crunch time, the screen splits automatically, with your team on the big tile and the audio. A game that goes to commercial leaves the grid at once, and the layout collapses back to full screen.
 - **Your team first.** Favorites always win unless the game is a blowout. You can choose *My teams first*, *Balanced* or *Best game on*.
@@ -21,7 +21,7 @@ On a busy night there are ten games on and you care about one team. Every timeou
 
 ### How we built it
 - **Vega OS app in React Native**, built on Amazon's multi-TV sample. The same UI also runs on web, for fast iteration.
-- **`@fastbreak/director`**: a pure-TypeScript engine with no platform dependencies, covered by 20 unit tests:
+- **`@swivel/director`**: a pure-TypeScript engine with no platform dependencies, covered by 23 unit tests:
   - a play-by-play reducer that keeps two views of every game: what the feed knows, and what your stream shows (feed time minus channel delay);
   - closed-form win probability and a **leverage index** (how much one possession swings the game);
   - a break model built from basketball's rules (media-timeout windows at 7:00 and 3:00, coaches stopping runs, late-game timeouts);
@@ -36,7 +36,7 @@ On a busy night there are ten games on and you care about one team. Every timeou
 
 ### Accomplishments
 - A director that feels like a human producer: it never jumps into a commercial, never ping-pongs, and always comes back to your team.
-- 20 unit tests, plus headless tools that replay whole nights and print every decision.
+- 23 unit tests, plus headless tools that replay whole nights and print every decision.
 
 ### What we learned
 - Vega's React Native stack made a TV-first, remote-driven UI straightforward, and the multi-TV sample let us iterate on the web and ship on Vega from one codebase.

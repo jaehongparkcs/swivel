@@ -5,10 +5,10 @@
 schema-version = 1
 
 [package]
-title = "Fastbreak"
+title = "Swivel"
 version = "0.1.0"
-icon = "@image/fastbreak_icon.png"
-id = "com.jaepark.fastbreak"
+icon = "@image/swivel_icon.png"
+id = "com.jaepark.swivel"
 
 [os.version]
 min = "1.2"
@@ -16,7 +16,7 @@ target = "1.2"
 
 [components]
 [[components.interactive]]
-id = "com.jaepark.fastbreak.main"
+id = "com.jaepark.swivel.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 categories = [
@@ -29,7 +29,7 @@ categories = [
 ## ------------------------------------------------------------------------------
 [processes]
 [[processes.group]]
-component-ids = ["com.jaepark.fastbreak.main"]
+component-ids = ["com.jaepark.swivel.main"]
 
 ## ------------------------------------------------------------------------------
 ## Wants - Optional capabilities
@@ -200,19 +200,19 @@ id = "/com.amazon.kepler.navigation__routers_7@INavigation__Routers_0"
 id = "com.amazon.gipc.uuid.*"
 
 [[offers.interaction]]
-id = "com.jaepark.fastbreak.main"
+id = "com.jaepark.swivel.main"
 
 [[offers.module]]
-id = "/com.jaepark.fastbreak.main@IMod1"
+id = "/com.jaepark.swivel.main@IMod1"
 includes-messages = [
-    "pkg://com.jaepark.fastbreak.main"
+    "pkg://com.jaepark.swivel.main"
 ]
 
 ## ------------------------------------------------------------------------------
 ## Message
 ## ------------------------------------------------------------------------------
 [[message]]
-uri = "pkg://com.jaepark.fastbreak.main"
+uri = "pkg://com.jaepark.swivel.main"
 sender-privileges = ["*"]
 receiver-privileges = ["self"]
 
@@ -221,7 +221,7 @@ receiver-privileges = ["self"]
 ## ------------------------------------------------------------------------------
 [[extras]]
 key = "interface.provider"
-component-id = "com.jaepark.fastbreak.main"
+component-id = "com.jaepark.swivel.main"
 
 [extras.value.application]
 # ------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ component-id = "com.jaepark.fastbreak.main"
 [[extras.value.application.interface]]
 interface_name = "com.amazon.kepler.media.IContentLauncherServer"
 attribute_options = ["partner-id"]
-static-values = { partner-id = "FASTBREAK" }
+static-values = { partner-id = "SWIVEL" }
 
 # ------------------------------------------------------------------------------
 # Vega Media Controls (VMC)

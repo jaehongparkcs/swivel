@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { durationLabel, matchup, type DirectorView } from '@fastbreak/director';
+import { durationLabel, matchup, type DirectorView } from '@swivel/director';
 import { fb, px } from './theme';
 
 function Key({ label, action, dim }: { label: string; action: string; dim?: boolean }) {

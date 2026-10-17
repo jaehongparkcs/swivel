@@ -12,26 +12,26 @@ Status as of Oct 16:
 
 ### 1. Rename Fastbreak → Swivel
 The app still says "Fastbreak" in about 90 places across about 30 files.
-- [ ] **On-screen brand:** "Fastbreak" wordmark and tagline in `packages/shared-ui/src/fastbreak/FastbreakApp.tsx`.
-- [ ] **Vega identity:**
+- [x] **On-screen brand:** "Fastbreak" wordmark and tagline in `packages/shared-ui/src/fastbreak/FastbreakApp.tsx`.
+- [x] **Vega identity:**
   - `apps/vega/manifest.toml`: `title`, and `id` → `com.jaepark.swivel` (all ~10 occurrences), `partner-id`.
   - `apps/vega/app.json` (`name`, `displayName`) and `apps/vega/package.json` (`kepler.appName`).
   - Note: a new `id` installs as a **new app** on the simulator. Uninstall the old one so it doesn't show twice.
-- [ ] **Code names:**
+- [x] **Code names:**
   - folder `packages/shared-ui/src/fastbreak/` → `swivel/`
   - `FastbreakApp` → `SwivelApp`, `useFastbreak` → `useSwivel`
   - exports in `packages/shared-ui/src/index.ts`; imports in `apps/vega/src/App.tsx` and `apps/expo-multi-tv/App.tsx`
   - web storage key `fastbreak.taste.v1` → `swivel.taste.v1`
-- [ ] **Engine package:** `@fastbreak/director` → `@swivel/director`.
+- [x] **Engine package:** `@fastbreak/director` → `@swivel/director`.
   - Update `packages/director/package.json`, the dependency lines in `apps/vega/package.json`, `apps/expo-multi-tv/package.json` and `packages/shared-ui/package.json`, and the aliases in both Metro configs.
   - Then run `yarn install` to refresh `yarn.lock`.
-- [ ] **Icon:** keep `apps/vega/assets/image/fastbreak_icon.png` (the design fits "Swivel") but rename the file to `swivel_icon.png` and update `manifest.toml`.
-- [ ] **Docs:** `README.md`, `packages/director/README.md`, everything in `docs/`. Include the pitch line contrasting Swivel with NBA CrunchTime and NFL RedZone: those are one channel for everyone; Swivel is personal, across your lineup, with no commercials.
-- [ ] **Verify:** 20 tests pass (`cd packages/director && npx tsx --test test/*.test.ts`); `yarn build:vega` and run-app show "Swivel"; the web build renders.
+- [x] **Icon:** keep `apps/vega/assets/image/fastbreak_icon.png` (the design fits "Swivel") but rename the file to `swivel_icon.png` and update `manifest.toml`.
+- [x] **Docs:** `README.md`, `packages/director/README.md`, everything in `docs/`. Include the pitch line contrasting Swivel with NBA CrunchTime and NFL RedZone: those are one channel for everyone; Swivel is personal, across your lineup, with no commercials.
+- [ ] **Verify:** 23 tests pass (`cd packages/director && npx tsx --test test/*.test.ts`) ✅; the web build renders "Swivel" ✅; still to do on the Mac: `yarn build:vega` and run-app show "Swivel" (uninstall the old `com.jaepark.fastbreak` first).
 
 ### 2. Demo video (< 3:00)
 - [ ] Rebuild after the rename, launch on the Vega Virtual Device, and record with QuickTime following `docs/DEMO_SCRIPT.md` (timings are from launch at 8x).
-- [ ] Fix or narrate over the 0:05 caption "Play resumed… Taking you back" (see P2 #12).
+- [x] Fix or narrate over the 0:05 caption "Play resumed… Taking you back" (fixed by P2 #12; `docs/DEMO_SCRIPT.md` updated).
 - [ ] Remote segment: OK to pick a game, Fast-forward to skip one, "Learned: you like ___", Play/Pause to hold, the Your teams screen.
 - [ ] No real league names, logos or music. Upload to YouTube or Vimeo as **public**, in English.
 
@@ -82,12 +82,12 @@ Replaces the hand-set watch-score weights. **It does not touch timing:** break h
 
 ## P2: known issues and polish
 
-- [ ] **8. Learning credits both teams** in a picked game, so it can't tell "likes this game" from "likes this team". Consider splitting credit, or weighting toward the team whose affinity is already higher.
-- [ ] **9. Channel delay is assumed known** (it's fixed in the simulator). Document it as the main production risk. Future: calibrate from HLS `EXT-X-PROGRAM-DATE-TIME` against feed timestamps.
-- [ ] **10. The simulated "play resumes" event is perfectly timed.** Real feeds often report it 5–15 s late. Optionally add a random reporting lag to keep the demo honest.
+- [x] **8. Learning credits both teams** in a picked game, so it can't tell "likes this game" from "likes this team". Consider splitting credit, or weighting toward the team whose affinity is already higher. *Done: each vote is split, leaning toward the team you already like (learned or explicit); negative votes lean the other way. Day-one behavior is unchanged.*
+- [x] **9. Channel delay is assumed known** (it's fixed in the simulator). Document it as the main production risk (*done: README "Known limits" and the director README*). Future: calibrate from HLS `EXT-X-PROGRAM-DATE-TIME` against feed timestamps.
+- [x] **10. The simulated "play resumes" event is perfectly timed.** Real feeds often report it 5–15 s late. Optionally add a random reporting lag to keep the demo honest. *Done: `resumeLagMs` sim option, off by default; `?lag=5-15` on web.*
 - [ ] **11. Build number** is still 0 (harmless warning). Find whether `build-vega` accepts `--build-number`.
-- [ ] **12. Cold-start wording:** when the app opens while your team is on a break, the first caption says "Play resumed… Taking you back" although you were never there. Change it to "Your team is back on" when the anchor came from startup.
-- [ ] **13. Long team names** get cut off ("Louisville Thoroughb…") on the Your teams screen. Shrink the font or abbreviate.
+- [x] **12. Cold-start wording:** when the app opens while your team is on a break, the first caption says "Play resumed… Taking you back" although you were never there. Change it to "Your team is back on" when the anchor came from startup.
+- [x] **13. Long team names** get cut off ("Louisville Thoroughb…") on the Your teams screen. Shrink the font or abbreviate. *Done: names over 20 characters use a smaller font.*
 - [ ] **14. `buildinfo.json`** is regenerated by each build. It's now in `.gitignore`. Delete the local copy if it reappears in `git status`.
 
 ## Deferred, mentioned as future work in the pitch

@@ -7,7 +7,7 @@ import {
   isCommercial,
   periodLabel,
   type GameInsight,
-} from '@fastbreak/director';
+} from '@swivel/director';
 import { fb, px, type } from './theme';
 
 interface Props {

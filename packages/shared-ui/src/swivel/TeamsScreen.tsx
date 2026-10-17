@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { TEAMS, type Loyalty, type TeamPrefs } from '@fastbreak/director';
+import { TEAMS, type Loyalty, type TeamPrefs } from '@swivel/director';
 import { fb, px } from './theme';
 
 export const TEAM_COLS = 4;
@@ -36,7 +36,7 @@ export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPref
   return (
     <View style={styles.screen}>
       <Text style={styles.h1}>Your teams</Text>
-      <Text style={styles.lede}>Press OK to cycle a team: favorite, then like, then off. Fastbreak keeps your favorites on screen unless they're on a break or another game is going down to the wire.</Text>
+      <Text style={styles.lede}>Press OK to cycle a team: favorite, then like, then off. Swivel keeps your favorites on screen unless they're on a break or another game is going down to the wire.</Text>
       <View style={styles.grid}>
         {TEAMS.map((t, i) => {
           const r = Math.floor(i / TEAM_COLS);
@@ -48,7 +48,9 @@ export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPref
             <View key={t.code} style={[styles.team, (fav || like) && styles.teamOn, focused && styles.focused]}>
               <View style={[styles.swatch, { backgroundColor: t.color, borderColor: t.alt }]} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.teamName} numberOfLines={1}>{`${t.city} ${t.name}`}</Text>
+                <Text style={[styles.teamName, `${t.city} ${t.name}`.length > LONG_NAME && styles.teamNameLong]} numberOfLines={1}>
+                  {`${t.city} ${t.name}`}
+                </Text>
                 <Text style={[styles.teamState, fav && { color: fb.amber }, !fav && !like && learned.likes.includes(t.code) && { color: fb.chalk }]}>
                   {fav
                     ? 'Favorite'
@@ -86,17 +88,20 @@ export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPref
           <Text style={[styles.doneText, fr === 5 && fc === 0 && { color: fb.ink }]}>Back to games</Text>
         </View>
         <View style={[styles.done, { marginLeft: px(20) }, fr === 5 && fc === 1 && styles.doneFocused]}>
-          <Text style={[styles.doneText, fr === 5 && fc === 1 && { color: fb.ink }]}>Forget what Fastbreak learned</Text>
+          <Text style={[styles.doneText, fr === 5 && fc === 1 && { color: fb.ink }]}>Forget what Swivel learned</Text>
         </View>
         <Text style={styles.learnNote}>
           {learned.signals
             ? `Learned from ${learned.signals} remote ${learned.signals === 1 ? 'press' : 'presses'}: picking a game, skipping one, or holding one.`
-            : 'Fastbreak learns from what you pick, skip and hold.'}
+            : 'Swivel learns from what you pick, skip and hold.'}
         </Text>
       </View>
     </View>
   );
 }
+
+/** Names longer than this don't fit a tile at full size ("Louisville Thoroughbreds"). */
+const LONG_NAME = 20;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: px(96), paddingTop: px(64) },
@@ -119,6 +124,7 @@ const styles = StyleSheet.create({
   focused: { borderColor: fb.amber },
   swatch: { width: px(44), height: px(44), borderRadius: px(22), borderWidth: px(5), marginRight: px(18) },
   teamName: { fontSize: px(26), fontWeight: '700', color: fb.chalk },
+  teamNameLong: { fontSize: px(21), letterSpacing: px(-0.3) },
   teamState: { fontSize: px(20), fontWeight: '600', color: fb.dim, marginTop: px(4) },
   optionsRow: { flexDirection: 'row', marginTop: px(28), marginHorizontal: px(-10) },
   option: {

@@ -7,8 +7,9 @@ export { matchup, periodLabel, clockLabel, durationLabel, situation, scoreLine, 
 export { ReplayLineupSource } from './lineup';
 export type { LineupSource, PlaybackController } from './lineup';
 export { buildSlate, suggestDemoStart } from './sim/slate';
-export type { Slate } from './sim/slate';
+export type { Slate, SlateOptions } from './sim/slate';
 export { simulateGame } from './sim/simulateGame';
+export type { SimOptions } from './sim/simulateGame';
 export { TEAMS, TEAM_BY_CODE } from './sim/teams';
 export { makeRng } from './rng';
 export { TasteLearner } from './learner';

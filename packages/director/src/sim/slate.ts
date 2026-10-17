@@ -2,7 +2,7 @@ import { makeRng, between } from '../rng';
 import { Director } from '../director';
 import type { ChannelRef, FeedEvent, GameInfo } from '../types';
 import { TEAMS } from './teams';
-import { simulateGame } from './simulateGame';
+import { simulateGame, type SimOptions } from './simulateGame';
 
 export interface Slate {
   seed: number;
@@ -17,7 +17,12 @@ const CHANNEL_NAMES = ['Courtside 1', 'Courtside 2', 'Regional Sports East', 'Re
 /** Tip-off offsets (minutes) for an 8-game night: early wave, late wave. */
 const TIP_OFFSETS_MIN = [0, 0, 5, 30, 30, 35, 60, 90];
 
-export function buildSlate(seed: number, nGames = 8): Slate {
+export interface SlateOptions {
+  /** See SimOptions.resumeLagMs. */
+  resumeLagMs?: SimOptions['resumeLagMs'];
+}
+
+export function buildSlate(seed: number, nGames = 8, opts: SlateOptions = {}): Slate {
   const rng = makeRng(seed);
   const pool = [...TEAMS].sort(() => rng() - 0.5);
   const games: GameInfo[] = [];
@@ -39,7 +44,7 @@ export function buildSlate(seed: number, nGames = 8): Slate {
     });
   }
   const events = games
-    .flatMap((g, i) => simulateGame(g, { seed: seed * 101 + i * 7919 }))
+    .flatMap((g, i) => simulateGame(g, { seed: seed * 101 + i * 7919, resumeLagMs: opts.resumeLagMs }))
     .sort((a, b) => a.t - b.t || a.gameId.localeCompare(b.gameId) || a.seq - b.seq);
   return { seed, games, events, endsAt: events[events.length - 1].t };
 }
