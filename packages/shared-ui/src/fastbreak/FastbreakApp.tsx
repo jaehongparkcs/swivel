@@ -41,10 +41,7 @@ export default function FastbreakApp() {
       const tiles = s.view.slots.length;
 
       if (key === SupportedKeys.PlayPause) return s.fbk.toggleLock();
-      if (key === SupportedKeys.FastForward) {
-        if (s.view.onDeck) s.fbk.watch(s.view.onDeck);
-        return;
-      }
+      if (key === SupportedKeys.FastForward) return s.fbk.skip();
       if (key === SupportedKeys.Rewind) {
         const i = SPEEDS.indexOf(s.fbk.speed);
         s.fbk.setSpeed(SPEEDS[(i + 1) % SPEEDS.length]);
@@ -65,7 +62,8 @@ export default function FastbreakApp() {
           if (r < 4) next = cycleTeam(s.prefs, TEAMS[r * TEAM_COLS + c].code);
           else if (r === 4 && c < 3) next = { ...s.prefs, loyalty: LOYALTIES[c].id };
           else if (r === 4 && c === 3) next = { ...s.prefs, multiview: !s.prefs.multiview };
-          else if (r === 5) return setScreen('watch');
+          else if (r === 5 && c === 0) return setScreen('watch');
+          else if (r === 5 && c === 1) return s.fbk.resetLearning();
           setPrefsState(next);
           s.fbk.setPrefs(next);
         }
@@ -113,7 +111,7 @@ export default function FastbreakApp() {
   if (screen === 'teams') {
     return (
       <View style={styles.root}>
-        <TeamsScreen prefs={prefs} focus={teamsFocus} />
+        <TeamsScreen prefs={prefs} focus={teamsFocus} learned={view.learned} />
       </View>
     );
   }

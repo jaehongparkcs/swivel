@@ -5,14 +5,14 @@ import { fb, px } from './theme';
 
 export const TEAM_COLS = 4;
 export const LOYALTIES: Array<{ id: Loyalty; label: string; detail: string }> = [
-  { id: 'team-first', label: 'My teams first', detail: 'Leave them only for breaks or big drama' },
+  { id: 'team-first', label: 'My teams first', detail: 'Leave only for breaks or big drama' },
   { id: 'balanced', label: 'Balanced', detail: 'Your teams get a head start' },
   { id: 'drama', label: 'Best game on', detail: 'Always chase the tightest game' },
 ];
 
-/** Focus grid: rows 0-3 teams, row 4 loyalty + multiview, row 5 done. */
+/** Focus grid: rows 0-3 teams, row 4 loyalty + multiview, row 5 done + forget learning. */
 export function teamsGrid(): number[] {
-  return [TEAM_COLS, TEAM_COLS, TEAM_COLS, TEAM_COLS, 4, 1];
+  return [TEAM_COLS, TEAM_COLS, TEAM_COLS, TEAM_COLS, 4, 2];
 }
 
 export function cycleTeam(prefs: TeamPrefs, code: string): TeamPrefs {
@@ -25,7 +25,13 @@ export function cycleTeam(prefs: TeamPrefs, code: string): TeamPrefs {
   return { ...prefs, favorites, likes };
 }
 
-export default function TeamsScreen({ prefs, focus }: { prefs: TeamPrefs; focus: [number, number] }) {
+interface Learned {
+  likes: string[];
+  dislikes: string[];
+  signals: number;
+}
+
+export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPrefs; focus: [number, number]; learned: Learned }) {
   const [fr, fc] = focus;
   return (
     <View style={styles.screen}>
@@ -43,7 +49,17 @@ export default function TeamsScreen({ prefs, focus }: { prefs: TeamPrefs; focus:
               <View style={[styles.swatch, { backgroundColor: t.color, borderColor: t.alt }]} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.teamName} numberOfLines={1}>{`${t.city} ${t.name}`}</Text>
-                <Text style={[styles.teamState, fav && { color: fb.amber }]}>{fav ? 'Favorite' : like ? 'Like' : t.code}</Text>
+                <Text style={[styles.teamState, fav && { color: fb.amber }, !fav && !like && learned.likes.includes(t.code) && { color: fb.chalk }]}>
+                  {fav
+                    ? 'Favorite'
+                    : like
+                      ? 'Like'
+                      : learned.likes.includes(t.code)
+                        ? 'Learned: you watch them'
+                        : learned.dislikes.includes(t.code)
+                          ? 'Learned: you skip them'
+                          : t.code}
+                </Text>
               </View>
             </View>
           );
@@ -62,11 +78,21 @@ export default function TeamsScreen({ prefs, focus }: { prefs: TeamPrefs; focus:
         })}
         <View style={[styles.option, prefs.multiview && styles.optionOn, fr === 4 && fc === 3 && styles.optionFocused]}>
           <Text style={[styles.optionLabel, prefs.multiview && { color: fb.ink }]}>{`Split & quad: ${prefs.multiview ? 'on' : 'off'}`}</Text>
-          <Text style={[styles.optionDetail, prefs.multiview && { color: fb.inkHigh }]} numberOfLines={2}>When two or more games are in crunch time</Text>
+          <Text style={[styles.optionDetail, prefs.multiview && { color: fb.inkHigh }]} numberOfLines={2}>When 2+ games are in crunch time</Text>
         </View>
       </View>
-      <View style={[styles.done, fr === 5 && styles.doneFocused]}>
-        <Text style={[styles.doneText, fr === 5 && { color: fb.ink }]}>Back to games</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={[styles.done, fr === 5 && fc === 0 && styles.doneFocused]}>
+          <Text style={[styles.doneText, fr === 5 && fc === 0 && { color: fb.ink }]}>Back to games</Text>
+        </View>
+        <View style={[styles.done, { marginLeft: px(20) }, fr === 5 && fc === 1 && styles.doneFocused]}>
+          <Text style={[styles.doneText, fr === 5 && fc === 1 && { color: fb.ink }]}>Forget what Fastbreak learned</Text>
+        </View>
+        <Text style={styles.learnNote}>
+          {learned.signals
+            ? `Learned from ${learned.signals} remote ${learned.signals === 1 ? 'press' : 'presses'}: picking a game, skipping one, or holding one.`
+            : 'Fastbreak learns from what you pick, skip and hold.'}
+        </Text>
       </View>
     </View>
   );
@@ -110,5 +136,6 @@ const styles = StyleSheet.create({
   optionDetail: { fontSize: px(20), color: fb.haze, marginTop: px(6) },
   done: { alignSelf: 'flex-start', marginTop: px(28), borderRadius: px(10), borderWidth: px(3), borderColor: fb.line, paddingHorizontal: px(36), paddingVertical: px(16) },
   doneFocused: { backgroundColor: fb.amber, borderColor: fb.amber },
+  learnNote: { fontSize: px(20), color: fb.dim, marginLeft: px(28), marginTop: px(28), flex: 1 },
   doneText: { fontSize: px(28), fontWeight: '800', color: fb.chalk },
 });

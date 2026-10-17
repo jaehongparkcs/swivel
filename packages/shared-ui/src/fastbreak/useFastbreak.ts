@@ -6,7 +6,34 @@ import {
   suggestDemoStart,
   type DirectorView,
   type TeamPrefs,
+  type TasteSnapshot,
 } from '@fastbreak/director';
+import { Platform } from 'react-native';
+
+const TASTE_KEY = 'fastbreak.taste.v1';
+
+/**
+ * Learned taste survives reloads on web (localStorage). On Vega this is
+ * in-memory for now; the device version would use Vega's key-value storage.
+ */
+function loadTaste(): TasteSnapshot | undefined {
+  if (Platform.OS !== 'web') return undefined;
+  try {
+    const raw = window.localStorage.getItem(TASTE_KEY);
+    return raw ? (JSON.parse(raw) as TasteSnapshot) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function saveTaste(t: TasteSnapshot): void {
+  if (Platform.OS !== 'web') return;
+  try {
+    window.localStorage.setItem(TASTE_KEY, JSON.stringify(t));
+  } catch {
+    /* storage unavailable: learning still works for this session */
+  }
+}
 import type { DemoConfig } from './demoConfig';
 
 const TICK_MS = 250;
@@ -18,7 +45,7 @@ const TICK_MS = 250;
 export function useFastbreak(config: DemoConfig, initialPrefs: TeamPrefs) {
   const slate = useMemo(() => buildSlate(config.seed), [config.seed]);
   const source = useMemo(() => new ReplayLineupSource(slate), [slate]);
-  const director = useMemo(() => new Director(source.games(), initialPrefs), [source]);
+  const director = useMemo(() => new Director(source.games(), initialPrefs, {}, loadTaste()), [source]);
 
   const startAt = config.startAt ?? suggestDemoStart(slate);
   const clock = useRef({ slateAt: startAt, realAt: Date.now(), speed: config.speed, polled: 0 });
@@ -64,10 +91,22 @@ export function useFastbreak(config: DemoConfig, initialPrefs: TeamPrefs) {
     },
     toggleLock: () => {
       director.toggleLock(now());
+      saveTaste(director.tasteSnapshot());
       refresh();
     },
     watch: (gameId: string) => {
       director.manualSelect(gameId, now());
+      saveTaste(director.tasteSnapshot());
+      refresh();
+    },
+    skip: () => {
+      director.skip(now());
+      saveTaste(director.tasteSnapshot());
+      refresh();
+    },
+    resetLearning: () => {
+      director.resetLearning(now());
+      saveTaste(director.tasteSnapshot());
       refresh();
     },
   };

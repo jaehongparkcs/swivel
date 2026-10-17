@@ -39,7 +39,7 @@ export default function StatusBar({ view, speed }: { view: DirectorView; speed: 
       <View style={{ flex: 1 }} />
       <Key label="OK" action="Watch" />
       <Key label="Play" action={view.locked ? 'Resume autopilot' : 'Hold this game'} />
-      <Key label="Fwd" action="Next game" />
+      <Key label="Fwd" action="Skip game" />
       <Key label="Rew" action={`Replay ${speed}x`} dim />
     </View>
   );

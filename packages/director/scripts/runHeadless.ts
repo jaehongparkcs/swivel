@@ -36,6 +36,7 @@ for (let t = 0; t <= slate.endsAt + 60_000; t += 1000) {
     const p = view.insights.find((g) => g.info.id === view.slots[0]);
     const where = p ? `${periodLabel(p.screen.period)} ${clockLabel(p.displayClock)}` : '';
     console.log(`${fmt(t)} [${view.layout.padEnd(6)}] ${d.kind.padEnd(12)} ${d.title} — ${d.detail}  {${view.slots.join(',')} ${where}}`);
+    if (d.recap) console.log(`         ↳ ${d.recap.label}: ${d.recap.text}`);
   }
   seen += fresh.length;
 }

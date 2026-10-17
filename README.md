@@ -14,6 +14,8 @@ Built for the Amazon Developer Hackathon (Fire TV track) on **Vega OS** with Rea
 - **Won't hop into a commercial.** If another game's feed already shows a timeout your stream hasn't reached, that game is skipped. While a break lasts, it prefers games that will still be live when the break ends.
 - **Finds tight games.** A closed-form win-probability model scores how much each possession swings the outcome (leverage). Split, three-up and quad kick in when games are in crunch time, with your team included.
 - **Never thrashes.** Minimum time on a game, a score margin a new game must beat to take over, hysteresis on what counts as crunch time, and a delay before cooled-off tiles leave.
+- **Learns from your remote.** Picking a game (OK) counts toward both teams in it, skipping one (Fast-forward) counts against it, and holding one (Play/Pause) counts for it. Which way you move, toward tight games or back to your teams, tunes how much drama outweighs loyalty. This runs entirely on the device: no account, no network. It says what it learned ("Learned: you like LOU"), shows it on the Your teams screen, and you can make it forget.
+- **What you missed.** Every switch carries a one-line catch-up generated from the play-by-play since you last saw that game: *"While you were away, 4:45: LVJ cut a 10-point lead to 1."* For a game you haven't seen yet, it's *"How we got here."* It picks the one storyline that matters (a lead change, a comeback, a run, a team pulling away) and stays silent when you only missed a commercial. Rules over play-by-play, no LLM, so it works offline and never makes up a play.
 - **Explains itself.** Every switch shows a reason, for example *"HNL @ TPA went to commercial. Full screen: KCS @ LVJ, 4th 2:52, 1-pt game."*
 
 ### Why not computer vision for break detection?
@@ -29,7 +31,7 @@ We considered detecting commercials from the picture (scorebug present or not, c
 | OK on "Your teams" | Pick favorites, likes, loyalty, split/quad on/off |
 | Left into the video | Pick a tile in split/quad; OK makes it full screen |
 | Play/Pause | Hold this game (pause autopilot) |
-| Fast-forward | Jump to the next best game |
+| Fast-forward | Skip this game (Fastbreak learns from it) |
 | Rewind | Demo only: cycle replay speed |
 
 On web: arrow keys, Enter, Space (Play/Pause), `]` (Fast-forward), `[` (Rewind), Esc (Back).
