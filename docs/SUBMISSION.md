@@ -14,14 +14,14 @@ On a busy night there are ten games on and you care about one team. Every timeou
 - **Hops on breaks.** When your game goes to a timeout, media timeout, quarter break or halftime, Swivel moves you to the best live game. When play resumes, it brings you back.
 - **Knows before your stream does.** Play-by-play data runs 25–55 s ahead of the broadcast. Swivel uses that lead to switch at exactly the right moment. It shows a real "Back in 0:18" when it already knows play has resumed, and never invents a countdown.
 - **Never takes you into a commercial.** If another game's feed already shows a timeout your stream hasn't reached, that game is skipped.
-- **Split, three-up and quad.** When several games are in crunch time, the screen splits automatically, with your team on the big tile and the audio. A game that goes to commercial leaves the grid at once, and the layout collapses back to full screen.
+- **Split, three-up and quad.** When several games are in crunch time, the screen splits automatically, with your team on the big tile and the audio. A game on a timeout keeps its tile under a "Back in" card while the audio moves to live action; longer breaks take it out of the grid.
 - **Your team first.** Favorites always win unless the game is a blowout. You can choose *My teams first*, *Balanced* or *Best game on*.
 - **Learns from your remote.** Picking, skipping and holding games teaches it which teams you like and how much you chase close games. It runs entirely on the device.
 - **Tells you why, and what you missed.** Every switch has a one-line reason and a catch-up generated from the play-by-play ("While you were away: LVJ cut a 10-point lead to 1").
 
 ### How we built it
 - **Vega OS app in React Native**, built on Amazon's multi-TV sample. The same UI also runs on web, for fast iteration.
-- **`@swivel/director`**: a pure-TypeScript engine with no platform dependencies, covered by 23 unit tests:
+- **`@swivel/director`**: a pure-TypeScript engine with no platform dependencies, covered by 24 unit tests:
   - a play-by-play reducer that keeps two views of every game: what the feed knows, and what your stream shows (feed time minus channel delay);
   - closed-form win probability and a **leverage index** (how much one possession swings the game);
   - a break model built from basketball's rules (media-timeout windows at 7:00 and 3:00, coaches stopping runs, late-game timeouts);
@@ -30,13 +30,13 @@ On a busy night there are ten games on and you care about one team. Every timeou
 - **A deterministic game simulator** (fictional league, realistic scoring and stoppages) drives the demo, so it carries no league footage or data rights. Search scripts find nights that exercise every behavior.
 
 ### Challenges
-- **Thrashing.** Early versions bounced between games every few seconds. Fixes: a minimum time on each game, a margin a challenger must beat, a single "anchor" game to return to, and different thresholds for entering and leaving crunch time.
+- **Thrashing.** Early versions bounced between games every few seconds. Fixes: a minimum time on each game, a margin a challenger must beat, a single "anchor" game to return to, and different thresholds for entering and leaving crunch time. Later we measured it: a script replays 40 simulated nights and counts screens that last under a minute. Settle time after each change, "back soon" detection from the feed, and timeouts that keep their tile cut that from 3.1 to 1.4 per hour.
 - **Not knowing how long a break will last.** Media timeouts vary by minutes. We dropped estimated countdowns and use the feed's lead over the broadcast as a real signal instead.
 - **Platform reality.** Live sports are DRM-protected, so detecting commercials with computer vision isn't possible in a third-party app. The feed-lead approach is earlier and more reliable anyway.
 
 ### Accomplishments
 - A director that feels like a human producer: it never jumps into a commercial, never ping-pongs, and always comes back to your team.
-- 23 unit tests, plus headless tools that replay whole nights and print every decision.
+- 24 unit tests, plus headless tools that replay whole nights and print every decision.
 
 ### What we learned
 - Vega's React Native stack made a TV-first, remote-driven UI straightforward, and the multi-TV sample let us iterate on the web and ship on Vega from one codebase.

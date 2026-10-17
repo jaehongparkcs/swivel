@@ -29,12 +29,12 @@ Times are **from app launch** (verified with `packages/director/scripts/demoTime
 | 0:13 | 0:05 | **"Your team is back on. Play resumed in HNL @ TPA."** | "The data feed runs 30 seconds ahead of the broadcast, so we know play is back before your stream does. You land the moment it resumes." |
 | 0:19 | 0:11 | **Split screen**: TPA plus NSH @ OMA, a 1-pt game in the 4th | "When another game goes down to the wire, it splits the screen. Your team keeps the audio and the win-probability bar." |
 | 0:40 | 0:32 | **Three-up**: KCS @ LVJ joins | "A third close finish: three-up, with your team on the big tile." |
-| 0:43 | 0:35 | NSH @ OMA **went to commercial**, back to split | "No commercials on screen. A game that goes to break simply leaves the grid…" |
-| 0:45 | 0:37 | TPA went to commercial, **full screen on KCS @ LVJ** | "…and when it's your team's break, you get the best live game full screen. The rail counts how long the break has run. There's no fake countdown." |
-| 0:47 | 0:39 | Hop to BAL @ STL with **"How we got here: BAL took the lead on a 7–0 run"** | "Every switch tells you why, plus a one-line catch-up written from the play-by-play." |
+| 0:45 | 0:37 | TPA goes to a timeout: **its tile stays, with a "Back in" card**, and the audio moves to KCS @ LVJ | "No commercials on screen. When your team breaks, its tile shows the break and the sound moves to live action. The grid doesn't jump around." |
+| 0:47 | 0:39 | All three go to commercial: **full screen on BAL @ STL** with **"How we got here: BAL took the lead on a 7–0 run"** | "When every game in the grid is on a break, you get the best live game full screen, with a one-line catch-up written from the play-by-play." |
+| 0:58 | 0:50 | Media timeout in BAL @ STL, hop to SEA @ SDS | (let it play) |
 | 1:04 | 0:56 | **Back to TPA** when play resumes | "Back to your team, automatically." |
-| 1:08–1:15 | 1:00–1:07 | Split, then three-up, then commercials collapsing it again | (let it play, or cut) |
-| 1:30 | 1:22 | Split: two other games in the final 2 minutes while TPA is at the quarter break | "It isn't only your team. It finds the best basketball anywhere in your lineup." |
+| 1:10–1:25 | 1:02–1:17 | Split with KCS @ LVJ, then both go to commercial | (let it play, or cut) |
+| 1:34 | 1:26 | Split: two other games in the final 2 minutes while TPA is at the quarter break | "It isn't only your team. It finds the best basketball anywhere in your lineup." |
 | 1:42 | 1:34 | **"HNL @ TPA is back"**: three-up again | |
 | 1:54 | 1:46–1:54 | Games go final, the grid shrinks to TPA full screen | |
 | **Remote segment** (≈2:00–2:40) | | | |
@@ -47,6 +47,6 @@ Times are **from app launch** (verified with `packages/director/scripts/demoTime
 
 ## Tips
 
-- If a take runs long, cut the 1:08–1:20 stretch first. It repeats the split, three-up and collapse pattern.
+- If a take runs long, cut the 1:10–1:34 stretch first. It repeats the split-and-break pattern.
 - Zoom in during editing on the caption and the rail's "Back in 0:18" countdowns. They're the proof that it isn't guessing.
 - Avoid real league names, logos and music. Teams and video are deliberately fictional.

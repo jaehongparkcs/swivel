@@ -31,9 +31,9 @@ setInterval(() => {
 - **Leverage.** Closed-form win probability (margin as Brownian motion) and a leverage index: how much one possession swings the game, where 1.0 is an even opening tip and above 4 is crunch time.
 - **The director policy.**
   - **Break hops with an anchor:** it leaves for a stoppage and returns to the game you were really watching, not every game it passed through.
-  - **Anti-thrash:** a minimum time on a game, a score margin a new game must beat, and different thresholds for entering and leaving crunch time.
+  - **Anti-thrash:** a minimum time on a game, a score margin a new game must beat, and different thresholds for entering and leaving crunch time. Optional moves wait 45 s after any change, and no hop happens when the feed shows play resuming within 45 s (`scripts/seamless.ts` measures this).
   - **Team first:** favorites win unless the game is a blowout, and you always return to your team.
-  - **Multiview:** split, three-up or quad from the games on air. A game that goes to commercial leaves the grid immediately and comes back on resume. Tiles keep their positions, and audio stays with your team or a live tile.
+  - **Multiview:** split, three-up or quad from the games on air. A game on a timeout keeps its tile (the UI covers the commercial with a "Back in" card) as long as another tile has action; longer breaks take it out of the grid until play resumes. Tiles keep their positions, and audio stays with your team or a live tile.
 - **Learns from the remote.** Picks, skips and holds update team affinities and a drama-vs-loyalty preference, on the device, and it announces what it learned.
 - **"What you missed."** One-line catch-ups generated from the play-by-play (comebacks, runs, lead changes, a team pulling away). It's silent when you only missed a commercial.
 - **Simulator.** A deterministic, possession-level pro-basketball simulator for a fictional league, with realistic scoring (about 113 points a team) and realistic stoppages. Use it for demos, tests and tuning, with no league data rights needed.
@@ -60,7 +60,7 @@ On Fire TV, `games()` comes from the Vega EPG Provider plus a licensed sports da
 cd packages/director
 npx tsx --test test/*.test.ts   # or: yarn workspace @swivel/director test
 # (the npm scripts below also work from this folder)
-npm test                          # 23 unit tests
+npm test                          # 24 unit tests
 npm run headless -- 51 TPA        # print every decision over a simulated night
 npm run demo-timeline -- 51 TPA 5960 8   # decisions at real-time offsets for a given start/speed
 npm run find-slate -- 1 200       # nights with the most split/quad action
