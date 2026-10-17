@@ -1,7 +1,7 @@
 # Devpost submission draft
 
 **Track:** Fire TV (Vega OS)
-**Mini challenge:** Open Source, *if* the engine is published as its own repo (see the end of this file). AWS Builder: not entered (no AWS services used).
+**Mini challenge:** Open Source, via a pull request to Amazon's `react-native-multi-tv-app-sample` (see `../PR_INSTRUCTIONS.md`). AWS Builder: not entered (no AWS services used).
 
 ---
 
@@ -53,6 +53,6 @@ TypeScript · React Native · Vega OS SDK · Vega Virtual Device · react-tv-spa
 
 ---
 
-## Optional: Open Source mini challenge
+## Open Source mini challenge
 
-The rules want a *new, additional* open-source project or contribution alongside the main submission. The cleanest route: publish `packages/director` as its own public repo (for example `fastbreak-director`) with an MIT-0 license, a README, and the tests and tools. Then fill in the contribution URL, your GitHub username, and a short description: "A platform-independent, break-aware auto-director for multi-game live sports viewing."
+Contribution: a pull request to `AmazonAppDev/react-native-multi-tv-app-sample` that moves the Vega build to `build-vega`, makes both Metro configs auto-discover `packages/*` workspaces, and documents shared packages. These were real problems we hit while building Fastbreak (friction log #3 and #5). The fields to paste are in `PR_INSTRUCTIONS.md`, one folder up.

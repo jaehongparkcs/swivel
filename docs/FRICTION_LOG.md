@@ -19,7 +19,7 @@ Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) 
 ### 3. The sample app uses a deprecated build command (low)
 - **Task:** Build the multi-TV sample on Vega.
 - **Actual:** Every build prints "This command is deprecated… replace usage with 'build-vega'", because the sample's scripts call `build-kepler`.
-- **Suggestion:** Update `react-native-multi-tv-app-sample` scripts to `build-vega`.
+- **Suggestion:** Update `react-native-multi-tv-app-sample` scripts to `build-vega`. **We opened a PR that does this.**
 
 ### 4. Sample install prints peer-dependency warnings for Amazon packages (low)
 - **Actual:** `yarn install` reports that `@multi-tv/vega` doesn't provide `@amazon-devices/keplerscript-turbomodule-api` (requested by `kepler-media-controls`), plus Babel plugin peers for `react-native-reanimated`.
@@ -29,7 +29,7 @@ Entries come from actually building Fastbreak on Vega SDK 0.24 (Vega CLI 1.4.5) 
 ### 5. Adding a shared workspace package means editing two Metro configs (low–medium)
 - **Task:** Add a new monorepo package (`packages/director`) used by both the Vega and web apps.
 - **Steps:** Adding it as a workspace dependency wasn't enough. Both `apps/vega/metro.config.js` and `apps/expo-multi-tv/metro.config.js` needed `watchFolders` and `extraNodeModules` entries.
-- **Suggestion:** Have the sample resolve all `packages/*` automatically, or document the steps in the README.
+- **Suggestion:** Have the sample resolve all `packages/*` automatically, or document the steps in the README. **Our PR does both.**
 
 ### 6. No documented way to test Content Launcher (Alexa) requests on the Virtual Device (medium)
 - **Task:** Explore "Alexa, watch the Tampa game on Fastbreak".
