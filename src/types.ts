@@ -110,8 +110,12 @@ export interface GameInsight {
   breakRisk: number;
   /** If the feed already shows a break the stream hasn't reached, ms until it appears on screen. */
   breakIncomingInMs?: number;
-  /** Estimated ms until a current on-screen break ends. */
+  /** Typical-duration estimate of ms left in an on-screen break (used only for soft decisions, never shown as a countdown). */
   breakRemainingMs?: number;
+  /** How long the on-screen break has lasted so far. */
+  breakElapsedMs?: number;
+  /** The feed already shows play resumed; ms until the stream catches up. A real countdown, not an estimate. */
+  resumeIncomingInMs?: number;
   /** Preference weight 0..1 from the viewer's teams. */
   preference: number;
   /** Final watch score used by the director (higher = more watchable now). */
@@ -126,13 +130,14 @@ export type InsightTag =
   | 'blowout'
   | 'run'
   | 'favorite'
+  | 'team-game'
   | 'break'
   | 'break-incoming'
   | 'mandatory-armed'
   | 'final'
   | 'pregame';
 
-export type Layout = 'single' | 'split' | 'quad';
+export type Layout = 'single' | 'split' | 'trio' | 'quad';
 
 export type DecisionKind =
   | 'start'

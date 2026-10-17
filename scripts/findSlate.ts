@@ -21,7 +21,7 @@ for (let seed = from; seed <= to; seed++) {
     d.ingestAll(src.poll(prev, t));
     prev = t;
     last = d.tick(t);
-    if (last.layout === 'quad') quad += 2;
+    if (last.layout === 'quad' || last.layout === 'trio') quad += 2;
     if (last.layout === 'split') split += 2;
   }
   const finals = slate.games.map((g) => slate.events.filter((e) => e.gameId === g.id).pop()!);
