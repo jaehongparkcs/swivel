@@ -15,11 +15,10 @@ import { TEAMS } from '@fastbreak/director';
 
 type Focus = { zone: 'rail'; index: number } | { zone: 'stage'; index: number };
 
-const STARTING_PREFS: TeamPrefs = { ...DEFAULT_PREFS, favorites: ['DEN'], likes: ['KCS'] };
 
 export default function FastbreakApp() {
   const config = useMemo(() => readDemoConfig(), []);
-  const fbk = useFastbreak(config, STARTING_PREFS);
+  const fbk = useFastbreak(config, { ...DEFAULT_PREFS, loyalty: 'team-first', favorites: config.favorites, likes: [] });
   const { view } = fbk;
   const [screen, setScreen] = useState<'watch' | 'teams'>('watch');
   const [focus, setFocus] = useState<Focus | null>(null);

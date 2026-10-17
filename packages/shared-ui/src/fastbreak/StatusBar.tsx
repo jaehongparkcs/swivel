@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { matchup, type DirectorView } from '@fastbreak/director';
+import { durationLabel, matchup, type DirectorView } from '@fastbreak/director';
 import { fb, px } from './theme';
 
 function Key({ label, action, dim }: { label: string; action: string; dim?: boolean }) {
@@ -22,7 +22,9 @@ export default function StatusBar({ view, speed }: { view: DirectorView; speed: 
   const state = view.locked
     ? `Holding ${audio ? matchup(audio.info) : 'this game'}`
     : back
-      ? `Back to ${matchup(back.info)} when play resumes`
+      ? back.resumeIncomingInMs !== undefined
+        ? `Back to ${matchup(back.info)} in ${durationLabel(back.resumeIncomingInMs)}`
+        : `Back to ${matchup(back.info)} the moment play resumes`
       : deck
         ? `Next up: ${matchup(deck.info)}`
         : 'Autopilot on';

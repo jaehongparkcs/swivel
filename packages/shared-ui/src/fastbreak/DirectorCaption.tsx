@@ -5,7 +5,7 @@ import { fb, px } from './theme';
 
 /** The director's caption: why the screen just changed, in one line. */
 export default function DirectorCaption({ decisions, width }: { decisions: Decision[]; width: number }) {
-  const shown = decisions.filter((d) => d.kind !== 'tile-swap' || decisions.length < 2);
+  const shown = decisions.filter((d) => !d.title.startsWith('Audio to'));
   const latest = shown[shown.length - 1];
   const prev = shown[shown.length - 2];
   const anim = useRef(new Animated.Value(1)).current;

@@ -18,9 +18,9 @@ export interface SimOptions {
 const PERIOD = 720;
 const OT = 300;
 const WALL = {
-  timeout: [130, 170],
-  mandatory: [150, 180],
-  quarter: [125, 145],
+  timeout: [95, 200],
+  mandatory: [110, 230],
+  quarter: [120, 170],
   halftime: [900, 900],
   overtime: [125, 140],
   review: [45, 95],

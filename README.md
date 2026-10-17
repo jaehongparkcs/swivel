@@ -8,13 +8,17 @@ Built for the Amazon Developer Hackathon (Fire TV track) on **Vega OS** with Rea
 
 ## What it does
 
-- **Hops on breaks.** Timeouts, media timeouts, quarter breaks, halftime and replay reviews are detected from the play-by-play feed. Fastbreak switches before the commercial reaches your screen, because the feed runs 25–55 s ahead of the broadcast.
-- **Won't hop into a commercial.** If another game's feed already shows a timeout that your stream hasn't reached yet, that game is skipped. While a break lasts, it prefers games that will still be live when the break ends.
-- **Comes back.** It remembers the game you were really watching. It returns when play resumes, unless the game it's showing has become clearly better, and the caption tells you which.
-- **Finds tight games.** Each game gets a leverage score from a closed-form win-probability model: how much one possession swings the outcome. Combined with your teams and a loyalty setting, this ranks every game every 250 ms.
-- **Split and quad.** Two crunch-time games give a split screen; three or more give a quad box. Tiles keep their positions, and audio follows a live game. A tile stuck on a long commercial gets filled with something live.
-- **Never thrashes.** Minimum time on a game, a score margin a new game must beat to take over, hysteresis on what counts as must-see, and a delay before the layout shrinks.
-- **Explains itself.** Every switch shows a reason, for example *"Media timeout in KCS @ STL. Switching to PIT @ DEN, 4th 5:21, 1-pt game. Back in ~2:45."*
+- **Your team first.** When one of your teams is live, you're on it, unless it's a blowout. When your team comes back from a break, you go back immediately. In multiview, your team always gets the big tile and the audio. (The "Your teams" screen also offers *Balanced* and *Best game on*.)
+- **Commercials leave the screen.** When your game breaks for a timeout, media timeout, quarter break or halftime, Fastbreak moves you to the best live game. In split, three-up or quad, a game that goes to commercial drops out of the grid at once, and the layout collapses (split becomes full screen). It comes back when play resumes. Replay reviews stay on screen, since they're game action.
+- **No guessed countdowns.** Break lengths vary (media timeouts run about 1:50–3:50), so Fastbreak never invents one. It shows how long the break has run and watches the play-by-play feed for play to resume. Because the feed is 25–55 s ahead of the broadcast, it knows play is back *before your stream does*, which gives a real countdown ("Back in 0:18") and a switch timed to the moment the video returns.
+- **Won't hop into a commercial.** If another game's feed already shows a timeout your stream hasn't reached, that game is skipped. While a break lasts, it prefers games that will still be live when the break ends.
+- **Finds tight games.** A closed-form win-probability model scores how much each possession swings the outcome (leverage). Split, three-up and quad kick in when games are in crunch time, with your team included.
+- **Never thrashes.** Minimum time on a game, a score margin a new game must beat to take over, hysteresis on what counts as crunch time, and a delay before cooled-off tiles leave.
+- **Explains itself.** Every switch shows a reason, for example *"HNL @ TPA went to commercial. Full screen: KCS @ LVJ, 4th 2:52, 1-pt game."*
+
+### Why not computer vision for break detection?
+
+We considered detecting commercials from the picture (scorebug present or not, court colors). On Fire TV, premium live sports are DRM-protected and decoded on a secure path, so an app can't read those frames, even in its own player. The feed-lead approach above is more accurate anyway: it knows about breaks and resumptions *earlier* than the picture shows them. Vision does fit one job on the platform side: automatically calibrating each channel's delay by reading the scorebug clock. That's on our feature-request list for the Fire TV team.
 
 ## Remote
 
@@ -65,11 +69,12 @@ yarn dev:web            # http://localhost:8082/?seed=74&speed=8
 # Engine tests and tools
 cd packages/director
 npx tsx --test test/*.test.ts
-npx tsx scripts/runHeadless.ts 74        # print every decision over a full night
+npx tsx scripts/runHeadless.ts 51 TPA    # print every decision over a full night
 npx tsx scripts/findSlate.ts 1 200       # search for demo-worthy nights
+npx tsx scripts/findDemo.ts 1 150        # search nights x favorite teams for the best demo
 ```
 
-Demo knobs are in `packages/shared-ui/src/fastbreak/demoConfig.ts` (default night `74`, 8x replay, starting a few minutes before the first split screen). On web they can be overridden with `?seed=&speed=&start=<seconds>`.
+Demo knobs are in `packages/shared-ui/src/fastbreak/demoConfig.ts`. The default is night `51` with Tampa as your team at 6x replay: a hop and return, split to three-up, commercials collapsing the grid, and Tampa going to overtime. `scripts/findDemo.ts` found it. On web, override with `?seed=&fav=TPA&speed=&start=<seconds>`.
 
 ## License
 

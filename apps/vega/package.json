@@ -33,14 +33,14 @@
     "@amazon-devices/react-navigation__native-stack": "~7.0.0",
     "@amazon-devices/react-navigation__routers": "~7.0.0",
     "@bam.tech/lrud": "*",
+    "@fastbreak/director": "workspace:*",
     "@multi-tv/shared-ui": "workspace:*",
     "react": "18.2.0",
     "react-native": "0.72.0",
     "react-native-keyevent": "*",
     "react-native-pixel-perfect": "*",
     "react-native-video": "*",
-    "react-tv-space-navigation": "*",
-    "@fastbreak/director": "workspace:*"
+    "react-tv-space-navigation": "*"
   },
   "devDependencies": {
     "@amazon-devices/kepler-cli-platform": "^0",

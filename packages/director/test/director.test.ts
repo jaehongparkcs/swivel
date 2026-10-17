@@ -86,7 +86,7 @@ test('no thrashing: dwell time and hysteresis cap opportunistic switches', () =>
   }
 });
 
-test('two crunch-time games produce a split screen with audio on a live game', () => {
+test('two crunch-time games split the screen; a commercial takes a game off until play resumes', () => {
   const A = game('A', 0);
   const B = game('B', 1);
   const C = game('C', 2);
@@ -100,12 +100,49 @@ test('two crunch-time games produce a split screen with audio on a live game', (
     b(20, 'score', 4, 180, 92, 90, { team: 'home', points: 2 }),
     c(20, 'score', 4, 180, 122, 90, { team: 'home', points: 2 }),
     a(40, 'timeout', 4, 170, 100, 101, { team: 'home' }),
+    a(150, 'resume', 4, 170, 100, 101),
   ];
-  const v = run(d, events, 60);
+  let v = run(d, events.filter((e) => e.t <= 35_000), 35);
   assert.equal(v.layout, 'split');
   assert.deepEqual([...v.slots].sort(), ['A', 'B']);
-  assert.equal(v.audio, 'B', 'audio moved off the game on timeout');
   assert.ok(!v.slots.includes('C'), 'blowout stays off screen');
+
+  v = run(d, events.filter((e) => e.t > 35_000 && e.t <= 60_000), 60);
+  assert.equal(v.layout, 'single', 'game on commercial left the grid');
+  assert.deepEqual(v.slots, ['B']);
+
+  v = run(d, events.filter((e) => e.t > 60_000), 170);
+  assert.equal(v.layout, 'split', 'came back when play resumed');
+  assert.deepEqual([...v.slots].sort(), ['A', 'B']);
+});
+
+test('team first: your team is preferred over a closer game and always gets audio', () => {
+  const A = game('A', 0);
+  const B = game('B', 1);
+  const [a, b] = [feed('A'), feed('B')];
+  const d = new Director([A, B], { ...prefs, favorites: [A.home.code], loyalty: 'team-first' });
+  const events = [
+    a(0, 'period_start', 3, 600, 70, 64), // your team, 6-pt game in the 3rd
+    b(0, 'period_start', 4, 300, 88, 88), // tied 4th quarter elsewhere
+    a(30, 'timeout', 3, 580, 70, 64, { team: 'away' }),
+    a(200, 'resume', 3, 580, 70, 64),
+  ];
+  let v = run(d, events.filter((e) => e.t <= 20_000), 20);
+  assert.equal(v.slots[0], 'A');
+  v = run(d, events.filter((e) => e.t > 20_000 && e.t <= 60_000), 60);
+  assert.deepEqual(v.slots, ['B'], 'hopped during your team\'s timeout');
+  v = run(d, events.filter((e) => e.t > 60_000), 210);
+  assert.equal(v.audio, 'A', 'back to your team, even though the other game is tighter');
+});
+
+test('honest countdown: resume is known from the feed before the stream shows it', () => {
+  const A = game('A', 0, 30_000);
+  const a = feed('A');
+  const d = new Director([A], prefs);
+  const v = run(d, [a(0, 'tipoff', 1, 720, 0, 0), a(10, 'timeout', 1, 710, 0, 0, { team: 'home' }), a(100, 'resume', 1, 710, 0, 0)], 110);
+  const g = v.insights[0];
+  assert.equal(g.screen.phase, 'break');
+  assert.equal(g.resumeIncomingInMs, 20_000, 'feed resumed at 100s, stream (30s behind) at 130s');
 });
 
 test('locking stops all automatic moves', () => {

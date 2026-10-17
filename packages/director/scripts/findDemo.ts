@@ -1,0 +1,42 @@
+/**
+ * Find a (night, favorite team) pair that makes a strong 3-minute demo:
+ * your team in a close finish, break hops and returns, and a three-up or quad moment.
+ *   tsx scripts/findDemo.ts [fromSeed] [toSeed]
+ */
+import { Director, buildSlate, ReplayLineupSource, suggestDemoStart } from '../src';
+
+const from = Number(process.argv[2] ?? 1);
+const to = Number(process.argv[3] ?? 120);
+const rows: any[] = [];
+for (let seed = from; seed <= to; seed++) {
+  const slate = buildSlate(seed);
+  const finals = new Map(slate.games.map((g) => [g.id, slate.events.filter((e) => e.gameId === g.id).pop()!]));
+  for (const g of slate.games) {
+    const f = finals.get(g.id)!;
+    const margin = Math.abs(f.homeScore - f.awayScore);
+    if (margin > 4) continue; // your team must be in a close one
+    const fav = g.home.code;
+    const src = new ReplayLineupSource(slate);
+    const d = new Director(src.games(), { favorites: [fav], likes: [], loyalty: 'team-first', multiview: true });
+    let prev = 0;
+    let big = 0;
+    let split = 0;
+    let firstBig = -1;
+    let view;
+    for (let t = 0; t <= slate.endsAt; t += 2000) {
+      d.ingestAll(src.poll(prev, t));
+      prev = t;
+      view = d.tick(t);
+      if (view.layout === 'trio' || view.layout === 'quad') {
+        big += 2;
+        if (firstBig < 0) firstBig = t;
+      }
+      if (view.layout === 'split') split += 2;
+    }
+    const kinds = view!.decisions.map((x) => x.kind);
+    rows.push({ seed, fav, ot: f.period > 4 ? 1 : 0, margin, big, split, firstBig: firstBig < 0 ? '' : Math.round(firstBig / 1000), returns: kinds.filter((k) => k === 'return').length, score: big * 4 + split + (f.period > 4 ? 300 : 0) });
+  }
+}
+rows.sort((a, b) => b.score - a.score);
+console.table(rows.slice(0, 15));
+void suggestDemoStart;

@@ -8,33 +8,54 @@ export const STAGE_W = px(1332);
 export const STAGE_H = px(749);
 const GAP = px(16);
 
+
 interface Props {
   view: DirectorView;
   focusedSlot: number | null;
 }
 
+function frames(layout: DirectorView['layout']): Array<{ x: number; y: number; w: number; h: number }> {
+  if (layout === 'single') return [{ x: 0, y: 0, w: STAGE_W, h: STAGE_H }];
+  if (layout === 'split') {
+    const w = (STAGE_W - GAP) / 2;
+    return [0, 1].map((i) => ({ x: i * (w + GAP), y: 0, w, h: (w * 9) / 16 }));
+  }
+  if (layout === 'trio') {
+    // One large tile (your team / audio) and two stacked on the right, all 16:9.
+    const ws = (STAGE_W - (GAP * 25) / 9) / 3;
+    const hs = (ws * 9) / 16;
+    const wb = STAGE_W - GAP - ws;
+    const hb = (wb * 9) / 16;
+    const top = (STAGE_H - hb) / 2;
+    return [
+      { x: 0, y: top, w: wb, h: hb },
+      { x: wb + GAP, y: top, w: ws, h: hs },
+      { x: wb + GAP, y: top + hs + GAP, w: ws, h: hs },
+    ];
+  }
+  const w = (STAGE_W - GAP) / 2;
+  const h = (STAGE_H - GAP) / 2;
+  return [0, 1, 2, 3].map((i) => ({ x: (i % 2) * (w + GAP), y: Math.floor(i / 2) * (h + GAP), w, h }));
+}
+
 export default function Stage({ view, focusedSlot }: Props) {
   const byId = new Map<string, GameInsight>(view.insights.map((g) => [g.info.id, g]));
   const tiles = view.slots.map((id) => byId.get(id)).filter((g): g is GameInsight => !!g);
-  const n = view.layout === 'single' ? 1 : view.layout === 'split' ? 2 : 4;
-  const cols = n === 1 ? 1 : 2;
-  const rows = n === 4 ? 2 : 1;
-  const w = n === 1 ? STAGE_W : (STAGE_W - GAP) / 2;
-  const h = n === 1 ? STAGE_H : n === 2 ? (w * 9) / 16 : (STAGE_H - GAP) / 2;
-
+  const fr = frames(view.layout);
+  const multi = view.layout !== 'single';
   return (
-    <View style={{ width: STAGE_W, height: STAGE_H, flexDirection: 'row', flexWrap: 'wrap', alignContent: n === 2 ? 'flex-start' : 'center', justifyContent: 'space-between' }}>
-      {tiles.slice(0, cols * rows).map((g, i) => (
-        <View key={g.info.id} style={{ marginBottom: rows === 2 && i < 2 ? GAP : 0 }}>
+    <View style={{ width: STAGE_W, height: STAGE_H }}>
+      {tiles.slice(0, fr.length).map((g, i) => (
+        <View key={g.info.id} style={{ position: 'absolute', left: fr[i].x, top: fr[i].y }}>
           <BroadcastTile
             g={g}
-            width={w}
-            height={h}
-            audio={n > 1 && view.audio === g.info.id}
+            width={fr[i].w}
+            height={fr[i].h}
+            audio={multi && view.audio === g.info.id}
             focused={focusedSlot === i}
-            compact={n > 1}
+            compact={multi && !(view.layout === 'trio' && i === 0)}
           />
-          {n === 2 && <SplitPanel g={g} width={w} />}
+          {view.layout === 'split' && <SplitPanel g={g} width={fr[i].w} />}
         </View>
       ))}
     </View>

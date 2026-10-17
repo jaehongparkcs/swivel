@@ -41,23 +41,23 @@ function players(seed: number, offenseLeft: boolean, now: number) {
 function BreakCard({ g, compact }: { g: GameInsight; compact: boolean }) {
   const kind = g.screen.breakKind ?? 'timeout';
   const commercial = isCommercial(kind);
+  const sub =
+    g.resumeIncomingInMs !== undefined
+      ? `Play resumed · on air in ${durationLabel(g.resumeIncomingInMs)}`
+      : commercial
+        ? `${kind === 'halftime' ? 'Halftime' : 'Commercial'} · ${durationLabel(g.breakElapsedMs ?? 0)} so far · watching for play`
+        : 'Play stopped';
   return (
     <View style={[styles.breakCard, { backgroundColor: commercial ? fb.scrim : 'rgba(8,14,24,0.55)' }]}>
       <Text style={[styles.breakKind, compact && { fontSize: px(26) }]}>{BREAK_NAMES[kind]}</Text>
-      {commercial ? (
-        <Text style={[styles.breakSub, compact && { fontSize: px(20) }]}>
-          {kind === 'halftime' ? 'Halftime show' : 'Commercial break'}
-          {g.breakRemainingMs ? `  ·  back in ~${durationLabel(g.breakRemainingMs)}` : ''}
-        </Text>
-      ) : (
-        <Text style={[styles.breakSub, compact && { fontSize: px(20) }]}>Play stopped</Text>
-      )}
+      <Text style={[styles.breakSub, compact && { fontSize: px(20) }, g.resumeIncomingInMs !== undefined && { color: fb.amber }]}>{sub}</Text>
     </View>
   );
 }
 
 function BroadcastTile({ g, width, height, audio, focused, compact }: Props) {
   const { home, away, channel } = g.info;
+  const tiny = width < px(520);
   const bugH = compact ? px(56) : px(72);
   const margin = compact ? px(16) : px(28);
   const s = Math.min((width - 2 * margin) / CW, (height - bugH - 2 * margin) / CH);
@@ -184,13 +184,13 @@ function BroadcastTile({ g, width, height, audio, focused, compact }: Props) {
 
       {/* Channel + simulated label */}
       <View style={styles.topRow}>
-        <Text style={[styles.channel, compact && { fontSize: px(16) }]} numberOfLines={1}>
+        <Text style={[styles.channel, compact && { fontSize: px(16) }, tiny && { fontSize: px(14) }]} numberOfLines={1}>
           {`${channel.number}  ${channel.name}`}
         </Text>
         <View style={{ flexDirection: 'row' }}>
           {crunch && live && (
             <View style={styles.crunchPill}>
-              <Text style={[styles.crunchText, compact && { fontSize: px(16) }]}>
+              <Text style={[styles.crunchText, compact && { fontSize: px(16) }, tiny && { fontSize: px(14) }]}>
                 {g.tags.includes('overtime') ? 'Overtime' : 'Crunch time'}
               </Text>
             </View>
@@ -206,19 +206,19 @@ function BroadcastTile({ g, width, height, audio, focused, compact }: Props) {
       {/* Scorebug */}
       <View style={[styles.bug, { height: bugH }]}>
         {[away, home].map((t, i) => (
-          <View key={t.code} style={[styles.bugTeam, { borderLeftColor: t.color }]}>
-            <Text style={[styles.bugCode, compact && { fontSize: px(24) }]}>{t.code}</Text>
-            <Text style={[styles.bugScore, type.digits, compact && { fontSize: px(30) }]}>
+          <View key={t.code} style={[styles.bugTeam, { borderLeftColor: t.color }, tiny && { marginRight: px(10), paddingLeft: px(8), borderLeftWidth: px(6) }]}>
+            <Text style={[styles.bugCode, compact && { fontSize: px(24) }, tiny && { fontSize: px(19), marginRight: px(8) }]}>{t.code}</Text>
+            <Text style={[styles.bugScore, type.digits, compact && { fontSize: px(30) }, tiny && { fontSize: px(23) }]}>
               {String(i === 0 ? g.screen.awayScore : g.screen.homeScore)}
             </Text>
           </View>
         ))}
         <View style={styles.bugClock}>
-          <Text style={[styles.bugPeriod, compact && { fontSize: px(20) }]}>{periodLabel(g.screen.period)}</Text>
-          <Text style={[styles.bugTime, type.digits, compact && { fontSize: px(26) }]}>{clockLabel(g.displayClock)}</Text>
+          <Text style={[styles.bugPeriod, compact && { fontSize: px(20) }, tiny && { fontSize: px(17), marginRight: px(6) }]}>{periodLabel(g.screen.period)}</Text>
+          <Text style={[styles.bugTime, type.digits, compact && { fontSize: px(26) }, tiny && { fontSize: px(21) }]}>{clockLabel(g.displayClock)}</Text>
         </View>
         <View style={{ flex: 1 }} />
-        <Text style={[styles.sim, compact && { fontSize: px(14) }]}>Simulated feed</Text>
+        {!tiny && <Text style={[styles.sim, compact && { fontSize: px(14) }]}>Simulated feed</Text>}
       </View>
     </View>
   );
