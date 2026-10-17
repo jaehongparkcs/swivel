@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import type { Decision } from '@fastbreak/director';
+import type { Decision } from '@swivel/director';
 import { fb, px } from './theme';
 
 /** The director's caption: why the screen just changed, in one line. */

@@ -7,7 +7,7 @@ require the video to show the app on a Fire TV device or the simulator.
 ## Setup (once)
 
 ```bash
-cd ~/dev/amazonappdev/fastbreak
+cd ~/dev/amazonappdev/swivel
 yarn build:vega
 vega virtual-device start
 vega run-app apps/vega/build/aarch64-release/*_aarch64.vpkg -d VirtualDevice
@@ -24,9 +24,9 @@ Times are **from app launch** (verified with `packages/director/scripts/demoTime
 
 | Video | App time | What's on screen | Narration (suggested) |
 |---|---|---|---|
-| 0:00–0:08 | before launch | Title card: "Fastbreak: autopilot for game night" | "Ten games on tonight. You care about one team, and you hate commercials." |
-| 0:08 | 0:00 | App opens on NSH @ OMA. TPA is on a break | "Fastbreak watches every game's play-by-play. Your team, Tampa, is on a break, so it starts you on the best live game." |
-| 0:13 | 0:05 | **"Play resumed in HNL @ TPA: Your team."** | "The data feed runs 30 seconds ahead of the broadcast, so we know play is back before your stream does. You land the moment it resumes." |
+| 0:00–0:08 | before launch | Title card: "Swivel: autopilot for game night" | "Ten games on tonight. You care about one team, and you hate commercials." |
+| 0:08 | 0:00 | App opens on NSH @ OMA. TPA is on a break | "Swivel watches every game's play-by-play. Your team, Tampa, is on a break, so it starts you on the best live game." |
+| 0:13 | 0:05 | **"Your team is back on. Play resumed in HNL @ TPA."** | "The data feed runs 30 seconds ahead of the broadcast, so we know play is back before your stream does. You land the moment it resumes." |
 | 0:19 | 0:11 | **Split screen**: TPA plus NSH @ OMA, a 1-pt game in the 4th | "When another game goes down to the wire, it splits the screen. Your team keeps the audio and the win-probability bar." |
 | 0:40 | 0:32 | **Three-up**: KCS @ LVJ joins | "A third close finish: three-up, with your team on the big tile." |
 | 0:43 | 0:35 | NSH @ OMA **went to commercial**, back to split | "No commercials on screen. A game that goes to break simply leaves the grid…" |
@@ -39,7 +39,7 @@ Times are **from app launch** (verified with `packages/director/scripts/demoTime
 | 1:54 | 1:46–1:54 | Games go final, the grid shrinks to TPA full screen | |
 | **Remote segment** (≈2:00–2:40) | | | |
 | | | Press **Down** to show the game rail, pick another game with **OK** | "You're always in control. Pick any game with OK…" |
-| | | Press **Fast-forward** on a game you don't care about | "…skip one with fast-forward. Fastbreak learns from both." |
+| | | Press **Fast-forward** on a game you don't care about | "…skip one with fast-forward. Swivel learns from both." |
 | | | Pick the same game again. Caption: **"Learned: you like ___"** | "Pick a team twice and it learns you like them. No account, no cloud. It all runs on the TV." |
 | | | **Play/Pause**: "Autopilot paused" | "Play/Pause holds a game when you don't want to be moved." |
 | | | Open **Your teams**: favorites, the learned tags, "My teams first / Balanced / Best game on" | "Choose how loyal it should be." |

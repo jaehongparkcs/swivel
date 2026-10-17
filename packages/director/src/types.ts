@@ -1,5 +1,5 @@
 /**
- * Core types for the Fastbreak director.
+ * Core types for the Swivel director.
  *
  * Time model: every timestamp is milliseconds on a single "slate clock" (wall time
  * for a live slate, or replay time for a simulated one). Feed events carry the time

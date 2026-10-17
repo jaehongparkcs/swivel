@@ -1,5 +1,5 @@
-// Fastbreak
-export { default as FastbreakApp } from './fastbreak/FastbreakApp';
+// Swivel
+export { default as SwivelApp } from './swivel/SwivelApp';
 
 // Main App Navigator
 export { default as AppNavigator } from './navigation/AppNavigator';

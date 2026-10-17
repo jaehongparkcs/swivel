@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Director } from '../src/director';
 import { buildRecap } from '../src/recap';
+import { TasteLearner } from '../src/learner';
+import type { GameInsight } from '../src/types';
 import { feed, game } from './helpers';
 
 const prefs = { favorites: [] as string[], likes: [] as string[], loyalty: 'balanced' as const, multiview: false };
@@ -78,4 +80,29 @@ test('recap: nothing to say when you only missed a commercial', () => {
   const A = game('A', 0);
   const a = feed('A');
   assert.equal(buildRecap(A, [a(0, 'timeout', 4, 300, 90, 88), a(150, 'resume', 4, 300, 90, 88)], 150_000, false), undefined);
+});
+
+test('credit leans toward the team you already like, so the opponent learns less', () => {
+  const g = (home: string, away: string) =>
+    ({ info: { id: `${away}@${home}`, home: { code: home }, away: { code: away } }, leverage: 1 }) as unknown as GameInsight;
+  const fresh = new TasteLearner();
+  fresh.onPick(g('TPA', 'HNL'));
+  assert.equal(fresh.affinity('TPA'), fresh.affinity('HNL'), 'no history: even split');
+
+  // Keep picking TPA games against different opponents: TPA pulls ahead of each one.
+  const l = new TasteLearner();
+  l.onPick(g('TPA', 'HNL'));
+  l.onPick(g('KCS', 'TPA'));
+  l.onPick(g('TPA', 'LVJ'));
+  assert.ok(l.affinity('TPA') > l.affinity('LVJ') + 0.1);
+  assert.deepEqual(l.learnedLikes(), ['TPA']);
+
+  // An explicit favorite gets the larger share right away; a skip lands mostly on the other team.
+  const p = new TasteLearner();
+  p.setPrior((c) => (c === 'TPA' ? 1 : 0));
+  p.onPick(g('TPA', 'HNL'));
+  assert.ok(p.affinity('TPA') > p.affinity('HNL'));
+  p.reset();
+  p.onSkip(g('TPA', 'HNL'));
+  assert.ok(p.affinity('HNL') < p.affinity('TPA'));
 });

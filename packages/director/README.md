@@ -1,11 +1,11 @@
-# @fastbreak/director
+# @swivel/director
 
 **A break-aware, preference-aware auto-director for watching many live games at once.** You give it each game's play-by-play and the channels it airs on. It decides what's on screen: which game, when to hop away for a commercial and when to come back, when to split the screen two, three or four ways, and why.
 
-Pure TypeScript, zero runtime dependencies, runs anywhere: TV apps, web, Node. It's the engine inside Fastbreak (this repo's Vega OS app), kept platform-independent so it can be reused.
+Pure TypeScript, zero runtime dependencies, runs anywhere: TV apps, web, Node. It's the engine inside Swivel (this repo's Vega OS app), kept platform-independent so it can be reused.
 
 ```ts
-import { Director, ReplayLineupSource, buildSlate } from '@fastbreak/director';
+import { Director, ReplayLineupSource, buildSlate } from '@swivel/director';
 
 const slate = buildSlate(51);                     // or your own games + feed
 const source = new ReplayLineupSource(slate);
@@ -52,15 +52,15 @@ interface PlaybackController {
 
 On Fire TV, `games()` comes from the Vega EPG Provider plus a licensed sports data feed, and `PlaybackController` maps to Vega Channel Tuning. A `FeedEvent` carries the running score, period, clock and an event type (`score`, `timeout`, `mandatory_timeout`, `review`, `resume`, `period_end`, …), which is close to the shape most commercial feeds expose.
 
-**Know your channel delay.** The two-view model is only as good as `channel.delayMs`. In production, measure it (for example by comparing HLS `EXT-X-PROGRAM-DATE-TIME` with feed timestamps) rather than hard-coding it.
+**Know your channel delay.** The two-view model is only as good as `channel.delayMs`. In production, measure it (for example by comparing HLS `EXT-X-PROGRAM-DATE-TIME` with feed timestamps) rather than hard-coding it. This is the main production risk. To see how late "play resumes" reports affect it, build a slate with `buildSlate(seed, 8, { resumeLagMs: [5000, 15000] })`.
 
 ## Tools
 
 ```bash
 cd packages/director
-npx tsx --test test/*.test.ts   # or: yarn workspace @fastbreak/director test
+npx tsx --test test/*.test.ts   # or: yarn workspace @swivel/director test
 # (the npm scripts below also work from this folder)
-npm test                          # 20 unit tests
+npm test                          # 23 unit tests
 npm run headless -- 51 TPA        # print every decision over a simulated night
 npm run demo-timeline -- 51 TPA 5960 8   # decisions at real-time offsets for a given start/speed
 npm run find-slate -- 1 200       # nights with the most split/quad action

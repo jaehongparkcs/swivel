@@ -3,12 +3,19 @@ import type { GameInfo, GameInsight } from './types';
 /**
  * Learns your taste from what you do with the remote, on the device, with no
  * account or network:
- *  - picking a game (OK) is a vote for both teams in it, and a small vote
+ *  - picking a game (OK) is a vote for the teams in it, and a small vote
  *    against the game you left;
  *  - skipping (Fast-forward) is a vote against the game you were on;
  *  - holding a game (Play/Pause) is a vote for it;
  *  - which way you move (toward closer games, or toward your teams) tunes how
  *    much drama matters relative to loyalty.
+ *
+ * A vote on a game is split between its two teams. With no history the split
+ * is even; once one team stands out (explicitly or from earlier votes), a
+ * positive vote leans toward it and a negative vote leans toward the other
+ * one. That way picking your favorite's game doesn't teach "likes the
+ * opponent" as fast, and the learner can tell "likes this team" apart from
+ * "liked this one game".
  *
  * Team affinities live in [-1, 1]; drama appetite in [0, 1] (0.5 = neutral).
  */
@@ -23,6 +30,9 @@ export type Lesson = { title: string; detail: string };
 const LIKE_THRESHOLD = 0.5;
 const DISLIKE_THRESHOLD = -0.4;
 
+/** Largest share of one vote either team can take. */
+const MAX_SHARE = 0.8;
+
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
 export class TasteLearner {
@@ -30,6 +40,8 @@ export class TasteLearner {
   private drama = 0.5;
   private signals = 0;
   private announced = new Set<string>();
+  /** Explicit preference per team (favorites, likes), used only to split credit. */
+  private prior: (code: string) => number = () => 0;
 
   constructor(snapshot?: TasteSnapshot) {
     if (snapshot) {
@@ -39,8 +51,25 @@ export class TasteLearner {
     }
   }
 
+  setPrior(prior: (code: string) => number): void {
+    this.prior = prior;
+  }
+
   private bump(code: string, delta: number): void {
     this.teams.set(code, clamp((this.teams.get(code) ?? 0) + delta, -1, 1));
+  }
+
+  /**
+   * Apply a vote of `perTeam` (per team, as if split evenly) to a game. Positive
+   * votes lean toward the team you already like more, negative votes away from it.
+   */
+  private credit(info: GameInfo, perTeam: number): void {
+    const { home, away } = info;
+    const lean = (code: string) => this.affinity(code) + this.prior(code);
+    const diff = clamp(lean(home.code) - lean(away.code), -1, 1);
+    const homeShare = clamp(0.5 + (perTeam > 0 ? diff : -diff) * 0.5, 1 - MAX_SHARE, MAX_SHARE);
+    this.bump(home.code, 2 * perTeam * homeShare);
+    this.bump(away.code, 2 * perTeam * (1 - homeShare));
   }
 
   private nudgeDrama(picked: GameInsight, left?: GameInsight): void {
@@ -51,28 +80,22 @@ export class TasteLearner {
 
   onPick(picked: GameInsight, left?: GameInsight): Lesson[] {
     this.signals++;
-    this.bump(picked.info.home.code, 0.3);
-    this.bump(picked.info.away.code, 0.3);
-    if (left && left.info.id !== picked.info.id) {
-      this.bump(left.info.home.code, -0.08);
-      this.bump(left.info.away.code, -0.08);
-    }
+    this.credit(picked.info, 0.3);
+    if (left && left.info.id !== picked.info.id) this.credit(left.info, -0.08);
     this.nudgeDrama(picked, left);
     return this.lessons();
   }
 
   onSkip(current: GameInsight, next?: GameInsight): Lesson[] {
     this.signals++;
-    this.bump(current.info.home.code, -0.2);
-    this.bump(current.info.away.code, -0.2);
+    this.credit(current.info, -0.2);
     if (next) this.nudgeDrama(next, current);
     return this.lessons();
   }
 
   onHold(current: GameInsight): Lesson[] {
     this.signals++;
-    this.bump(current.info.home.code, 0.15);
-    this.bump(current.info.away.code, 0.15);
+    this.credit(current.info, 0.15);
     return this.lessons();
   }
 

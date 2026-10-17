@@ -9,6 +9,8 @@ export interface DemoConfig {
   startAt?: number;
   /** Team codes to start with as favorites. */
   favorites: string[];
+  /** Report "play resumes" this many ms late ([min, max]), like real feeds. Off when unset. */
+  resumeLagMs?: [number, number];
 }
 
 /**
@@ -18,7 +20,7 @@ export interface DemoConfig {
  */
 export const DEFAULT_DEMO: DemoConfig = { seed: 51, speed: 8, startAt: 5_960_000, favorites: ['TPA'] };
 
-/** On web, ?seed=74&speed=8&start=7800 (seconds) overrides the defaults. */
+/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds) overrides the defaults. */
 export function readDemoConfig(): DemoConfig {
   const cfg: DemoConfig = { ...DEFAULT_DEMO };
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
@@ -28,6 +30,8 @@ export function readDemoConfig(): DemoConfig {
     if (q.get('seed') && !q.get('start')) cfg.startAt = undefined;
     if (q.get('start')) cfg.startAt = Number(q.get('start')) * 1000;
     if (q.get('fav')) cfg.favorites = q.get('fav')!.split(',');
+    const lag = q.get('lag')?.split('-').map(Number);
+    if (lag && lag.every((x: number) => Number.isFinite(x))) cfg.resumeLagMs = [lag[0] * 1000, (lag[1] ?? lag[0]) * 1000];
   }
   return cfg;
 }

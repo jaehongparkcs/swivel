@@ -20,6 +20,6 @@
     "typescript": "~5.7.0"
   },
   "dependencies": {
-    "@fastbreak/director": "workspace:*"
+    "@swivel/director": "workspace:*"
   }
 }

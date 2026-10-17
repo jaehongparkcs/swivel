@@ -3276,16 +3276,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fastbreak/director@workspace:*, @fastbreak/director@workspace:packages/director":
-  version: 0.0.0-use.local
-  resolution: "@fastbreak/director@workspace:packages/director"
-  dependencies:
-    "@types/node": "npm:^22.0.0"
-    tsx: "npm:^4.19.2"
-    typescript: "npm:~5.7.0"
-  languageName: unknown
-  linkType: soft
-
 "@gar/promise-retry@npm:^1.0.0":
   version: 1.0.3
   resolution: "@gar/promise-retry@npm:1.0.3"
@@ -4064,12 +4054,12 @@ __metadata:
     "@commitlint/config-conventional": "npm:^19.5.0"
     "@expo/metro-runtime": "npm:~4.0.0"
     "@expo/vector-icons": "npm:^14.0.0"
-    "@fastbreak/director": "workspace:*"
     "@multi-tv/shared-ui": "workspace:*"
     "@react-native-tvos/config-tv": "npm:^0.0.10"
     "@react-navigation/drawer": "npm:^7.0.0"
     "@react-navigation/native": "npm:^7.0.0"
     "@react-navigation/native-stack": "npm:^7.0.0"
+    "@swivel/director": "workspace:*"
     "@types/jest": "npm:^29.5.12"
     "@types/react": "npm:~19.1.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.12.2"
@@ -4115,7 +4105,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@multi-tv/shared-ui@workspace:packages/shared-ui"
   dependencies:
-    "@fastbreak/director": "workspace:*"
+    "@swivel/director": "workspace:*"
     "@types/react": "npm:~19.1.0"
     typescript: "npm:~5.7.0"
   peerDependencies:
@@ -4149,12 +4139,12 @@ __metadata:
     "@babel/plugin-transform-template-literals": "npm:^7.27.1"
     "@babel/traverse": "npm:^7.20.0"
     "@bam.tech/lrud": "npm:*"
-    "@fastbreak/director": "workspace:*"
     "@multi-tv/shared-ui": "workspace:*"
     "@react-native-community/cli": "npm:17.0.1"
     "@react-native-community/cli-tools": "npm:^11.0.0"
     "@react-native/eslint-config": "npm:0.72.2"
     "@react-native/metro-config": "npm:^0.72.6"
+    "@swivel/director": "workspace:*"
     "@testing-library/react-native": "npm:^7.2.0"
     "@tsconfig/react-native": "npm:^3.0.2"
     "@types/jest": "npm:^28.0.0"
@@ -5447,6 +5437,16 @@ __metadata:
   checksum: 10c0/d9187f9130f03272562ff9845867299c6f7cf15157bbb3e6aca4a1f06d885b0eef54259d0ad41e2f8043dc530b4db730b6c9415b169033e7ba8fed0ad449ceec
   languageName: node
   linkType: hard
+
+"@swivel/director@workspace:*, @swivel/director@workspace:packages/director":
+  version: 0.0.0-use.local
+  resolution: "@swivel/director@workspace:packages/director"
+  dependencies:
+    "@types/node": "npm:^22.0.0"
+    tsx: "npm:^4.19.2"
+    typescript: "npm:~5.7.0"
+  languageName: unknown
+  linkType: soft
 
 "@testing-library/react-native@npm:^7.2.0":
   version: 7.2.0

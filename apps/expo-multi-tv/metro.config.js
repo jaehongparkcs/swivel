@@ -21,7 +21,7 @@ config.resolver = {
   ],
   extraNodeModules: {
     '@multi-tv/shared-ui': path.resolve(__dirname, '../../packages/shared-ui/src'),
-    '@fastbreak/director': path.resolve(__dirname, '../../packages/director/src'),
+    '@swivel/director': path.resolve(__dirname, '../../packages/director/src'),
   },
 };
 

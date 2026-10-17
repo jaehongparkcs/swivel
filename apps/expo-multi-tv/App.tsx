@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { LogBox } from 'react-native';
-import { FastbreakApp } from '@multi-tv/shared-ui';
+import { SwivelApp } from '@multi-tv/shared-ui';
 
 if (__DEV__) {
   LogBox.ignoreLogs([/findNodeHandle is deprecated/, /findHostInstance_DEPRECATED is deprecated/]);
@@ -13,5 +13,5 @@ export default function App() {
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
-  return <FastbreakApp />;
+  return <SwivelApp />;
 }

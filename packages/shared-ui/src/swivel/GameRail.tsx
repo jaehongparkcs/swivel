@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { clockLabel, durationLabel, periodLabel, type DirectorView, type GameInsight } from '@fastbreak/director';
+import { clockLabel, durationLabel, periodLabel, type DirectorView, type GameInsight } from '@swivel/director';
 import { fb, px, type } from './theme';
 
 interface Props {

@@ -33,7 +33,7 @@ The submission asks, for every tool, API or SDK used: what you used it for, what
 ## Feature requests
 | Request | Why it matters | Urgency |
 |---|---|---|
-| Live TV capability matrix for third-party apps (tune, EPG read, multiview/PiP) | Decides whether aggregator experiences like Fastbreak are possible on Vega | Critical |
+| Live TV capability matrix for third-party apps (tune, EPG read, multiview/PiP) | Decides whether aggregator experiences like Swivel are possible on Vega | Critical |
 | Multiview of live channels (2–4 tiles, one audio) as a platform API | Every sports aggregator wants it, and DRM makes it impossible to build from outside | Important |
 | Platform signal for "in commercial break" or per-channel stream delay | Lets apps time switches precisely without computer vision on protected video | Important |
 | VVD command to send Content Launcher requests | Makes Alexa integration testable | Important |
