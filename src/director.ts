@@ -1,6 +1,8 @@
 import { BREAK_EVENT_TYPES, breakHazard, breakRemainingMs, currentRun, isCommercial } from './breakModel';
 import { BREAK_NAMES, durationLabel, matchup, situation, whyWatch } from './explain';
 import { GameTimeline } from './gameState';
+import { TasteLearner, type Lesson, type TasteSnapshot } from './learner';
+import { buildRecap } from './recap';
 import { homeWinProb, leverageIndex } from './winprob';
 import type {
   Decision,
@@ -70,8 +72,17 @@ export class Director {
   private lastLayoutAt = -Infinity;
   private manualHoldUntil = -Infinity;
   private decisions: Decision[] = [];
+  private readonly learner: TasteLearner;
+  /** Stream time at which each game was last on screen. */
+  private readonly lastSeen = new Map<string, number>();
 
-  constructor(games: GameInfo[], prefs: TeamPrefs = DEFAULT_PREFS, config: Partial<DirectorConfig> = {}) {
+  constructor(
+    games: GameInfo[],
+    prefs: TeamPrefs = DEFAULT_PREFS,
+    config: Partial<DirectorConfig> = {},
+    taste?: TasteSnapshot,
+  ) {
+    this.learner = new TasteLearner(taste);
     for (const g of games) {
       this.games.set(g.id, g);
       this.timelines.set(g.id, new GameTimeline(g.id));
@@ -100,6 +111,7 @@ export class Director {
 
   toggleLock(t: number): void {
     this.locked = !this.locked;
+    if (this.locked && this.audio) this.learn(t, this.learner.onHold(this.insight(this.audio, t)));
     const primary = this.audio && this.games.get(this.audio);
     this.log(t, this.locked ? 'lock' : 'unlock', {
       title: this.locked ? 'Autopilot paused' : 'Autopilot on',
@@ -117,7 +129,9 @@ export class Director {
   manualSelect(gameId: string, t: number): void {
     const info = this.games.get(gameId);
     if (!info) return;
-    const from = this.slots[0];
+    const from = this.audio ?? this.slots[0];
+    const picked = this.insight(gameId, t);
+    const left = from ? this.insight(from, t) : undefined;
     this.slots = [gameId];
     this.audio = gameId;
     this.layout = 'single';
@@ -125,7 +139,67 @@ export class Director {
     this.lastSwitchAt = t;
     this.lastLayoutAt = t;
     this.manualHoldUntil = t + this.config.minDwellMs * 2;
-    this.log(t, 'manual', { from, to: gameId, title: `Watching ${matchup(info)}`, detail: 'Your pick. Autopilot still covers breaks.' });
+    this.log(t, 'manual', {
+      from,
+      to: gameId,
+      title: `Watching ${matchup(info)}`,
+      detail: 'Your pick. Autopilot still covers breaks.',
+      recap: this.recapFor(gameId, t),
+    });
+    if (from !== gameId) this.learn(t, this.learner.onPick(picked, left));
+  }
+
+  /** Fast-forward: leave this game for the next best one, and learn from it. */
+  skip(t: number): void {
+    const cur = this.audio ?? this.slots[0];
+    if (!cur) return;
+    const current = this.insight(cur, t);
+    const ranked = [...this.games.keys()]
+      .filter((id) => id !== cur)
+      .map((id) => this.insight(id, t))
+      .filter((g) => this.eligible(g))
+      .sort((a, b) => b.watchScore - a.watchScore);
+    const to = ranked[0];
+    if (!to) return;
+    this.slots = [to.info.id];
+    this.audio = to.info.id;
+    this.layout = 'single';
+    this.anchor = undefined;
+    this.lastSwitchAt = t;
+    this.lastLayoutAt = t;
+    this.manualHoldUntil = t + this.config.minDwellMs;
+    this.log(t, 'skip', {
+      from: cur,
+      to: to.info.id,
+      title: `Skipped ${matchup(current.info)}`,
+      detail: `Now: ${matchup(to.info)} · ${situation(to)}.`,
+      recap: this.recapFor(to.info.id, t),
+    });
+    this.learn(t, this.learner.onSkip(current, to));
+  }
+
+  resetLearning(t: number): void {
+    this.learner.reset();
+    this.log(t, 'learned', { title: 'Forgot what Fastbreak learned', detail: 'Starting fresh from your teams.' });
+  }
+
+  tasteSnapshot(): TasteSnapshot {
+    return this.learner.snapshot();
+  }
+
+  private learn(t: number, lessons: Lesson[]): void {
+    for (const l of lessons) this.log(t, 'learned', l);
+  }
+
+  /** Catch-up line for a game, from when you last saw it (or the last 6 minutes). */
+  private recapFor(gameId: string, t: number): { label: string; text: string } | undefined {
+    const info = this.games.get(gameId)!;
+    const now = t - info.channel.delayMs;
+    const seen = this.lastSeen.get(gameId);
+    const from = Math.max(seen ?? -Infinity, now - 8 * 60_000);
+    if (now - from < 20_000) return undefined;
+    const events = this.timelines.get(gameId)!.eventsBetween(from, now);
+    return buildRecap(info, events, now - from, seen === undefined || seen < from);
   }
 
   // ---------------------------------------------------------------- insights
@@ -133,8 +207,8 @@ export class Director {
   private preferenceOf(info: GameInfo): number {
     const codes = [info.home.code, info.away.code];
     if (codes.some((c) => this.prefs.favorites.includes(c))) return 1;
-    if (codes.some((c) => this.prefs.likes.includes(c))) return 0.5;
-    return 0;
+    if (codes.some((c) => this.prefs.likes.includes(c))) return Math.max(0.5, this.learner.boost(info));
+    return this.learner.boost(info);
   }
 
   insight(gameId: string, t: number): GameInsight {
@@ -181,7 +255,10 @@ export class Director {
       tags.push('team-game');
 
     const hazard = breakIncomingInMs !== undefined ? 1 : breakHazard(screen, displayClock, leverage);
-    const base = dramaScore(leverage, tags) + LOYALTY_WEIGHT[this.prefs.loyalty] * preference;
+    const base =
+      dramaScore(leverage, tags) * this.learner.dramaWeight() +
+      LOYALTY_WEIGHT[this.prefs.loyalty] * preference -
+      this.learner.penalty(info);
     const watchScore = screen.phase === 'live' ? base - 0.5 * hazard : screen.phase === 'break' ? base - 2 : -5;
 
     return {
@@ -234,7 +311,12 @@ export class Director {
       if (!handled) this.steerPrimary(t, byId, ranked, bestExcept);
     }
 
+    for (const id of this.slots) {
+      const g = byId.get(id);
+      if (g && g.screen.phase === 'live') this.lastSeen.set(id, t - g.info.channel.delayMs);
+    }
     const onDeck = bestExcept(this.slots)?.info.id;
+    const snap = this.learner.snapshot();
     return {
       t,
       layout: this.layout,
@@ -246,6 +328,7 @@ export class Director {
       onDeck,
       insights: all.sort((a, b) => b.watchScore - a.watchScore),
       decisions: [...this.decisions],
+      learned: { likes: this.learner.learnedLikes(), dislikes: this.learner.learnedDislikes(), drama: snap.drama, signals: snap.signals },
     };
   }
 
@@ -268,6 +351,7 @@ export class Director {
       to: first.info.id,
       title: `Starting with ${matchup(first.info)}`,
       detail: why ? `Best game on right now: ${why}.` : 'Best game on right now.',
+      recap: this.recapFor(first.info.id, t),
     });
   }
 
@@ -277,7 +361,7 @@ export class Director {
     this.audio = to.info.id;
     this.lastSwitchAt = t;
     if (kind !== 'break-hop') this.anchor = undefined;
-    this.log(t, kind, { from, to: to.info.id, title, detail });
+    this.log(t, kind, { from, to: to.info.id, title, detail, recap: this.recapFor(to.info.id, t) });
   }
 
   private steerPrimary(
@@ -499,6 +583,7 @@ export class Director {
       this.benched.delete(g.info.id);
     }
     this.log(t, 'tile-swap', {
+      recap: added[0] ? this.recapFor(added[0].info.id, t) : undefined,
       title: capitalize(parts.join('; ')),
       detail: `${this.layoutName()}: ${next.map((id) => matchup(byId.get(id)!.info)).join(', ')}. Audio: ${matchup(byId.get(this.audio!)!.info)}.`,
     });
@@ -545,7 +630,11 @@ export class Director {
     return { single: 'Full screen', split: 'Split screen', trio: 'Three-up', quad: 'Quad box' }[this.layout];
   }
 
-  private log(t: number, kind: DecisionKind, d: { from?: string; to?: string; title: string; detail: string }): void {
+  private log(
+    t: number,
+    kind: DecisionKind,
+    d: { from?: string; to?: string; title: string; detail: string; recap?: { label: string; text: string } },
+  ): void {
     this.decisions.push({ t, kind, layout: this.layout, ...d });
     if (this.decisions.length > MAX_DECISIONS) this.decisions.splice(0, this.decisions.length - MAX_DECISIONS);
   }

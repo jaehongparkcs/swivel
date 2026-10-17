@@ -11,3 +11,7 @@ export type { Slate } from './sim/slate';
 export { simulateGame } from './sim/simulateGame';
 export { TEAMS, TEAM_BY_CODE } from './sim/teams';
 export { makeRng } from './rng';
+export { TasteLearner } from './learner';
+export type { TasteSnapshot, Lesson } from './learner';
+export { buildRecap } from './recap';
+export type { Recap } from './recap';

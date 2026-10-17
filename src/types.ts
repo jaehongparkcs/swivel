@@ -151,7 +151,9 @@ export type DecisionKind =
   | 'manual'
   | 'lock'
   | 'unlock'
-  | 'hold'; // considered switching but stayed (shown sparingly)
+  | 'hold' // considered switching but stayed (shown sparingly)
+  | 'skip' // viewer pressed fast-forward
+  | 'learned'; // the taste learner picked up something new
 
 export interface Decision {
   t: number;
@@ -161,6 +163,8 @@ export interface Decision {
   layout: Layout;
   title: string;
   detail: string;
+  /** Catch-up line for the game we just switched to, generated from the play-by-play. */
+  recap?: { label: string; text: string };
 }
 
 export type Loyalty = 'team-first' | 'balanced' | 'drama';
@@ -207,4 +211,6 @@ export interface DirectorView {
   onDeck?: string;
   insights: GameInsight[];
   decisions: Decision[];
+  /** What the taste learner has picked up from remote presses. */
+  learned: { likes: string[]; dislikes: string[]; drama: number; signals: number };
 }
