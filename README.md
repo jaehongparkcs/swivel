@@ -78,14 +78,6 @@ npx tsx scripts/findDemo.ts 1 150        # search nights x favorite teams for th
 
 Demo knobs are in `packages/shared-ui/src/fastbreak/demoConfig.ts`. The default is night `51` with Tampa as your team at 6x replay: a hop and return, split to three-up, commercials collapsing the grid, and Tampa going to overtime. `scripts/findDemo.ts` found it. On web, override with `?seed=&fav=TPA&speed=&start=<seconds>`.
 
-## The engine lives in its own repo
-
-`packages/director` is a vendored copy of **fastbreak-engine**, the open-source engine (MIT-0), kept in sync with `git subtree`, so this repo builds on its own. To pull engine updates:
-
-```bash
-git subtree pull --prefix=packages/director <fastbreak-engine repo URL> main
-```
-
 ## License
 
 MIT-0. Built on Amazon's [react-native-multi-tv-app-sample](https://github.com/AmazonAppDev/react-native-multi-tv-app-sample) (MIT-0); its original README is in `TEMPLATE_README.md`.

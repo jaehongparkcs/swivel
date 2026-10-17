@@ -1,8 +1,8 @@
-# fastbreak-engine
+# @fastbreak/director
 
 **A break-aware, preference-aware auto-director for watching many live games at once.** You give it each game's play-by-play and the channels it airs on. It decides what's on screen: which game, when to hop away for a commercial and when to come back, when to split the screen two, three or four ways, and why.
 
-Pure TypeScript, zero runtime dependencies, runs anywhere: TV apps, web, Node. It powers Fastbreak, an autopilot sports app for Fire TV (Vega OS).
+Pure TypeScript, zero runtime dependencies, runs anywhere: TV apps, web, Node. It's the engine inside Fastbreak (this repo's Vega OS app), kept platform-independent so it can be reused.
 
 ```ts
 import { Director, ReplayLineupSource, buildSlate } from '@fastbreak/director';
@@ -57,7 +57,9 @@ On Fire TV, `games()` comes from the Vega EPG Provider plus a licensed sports da
 ## Tools
 
 ```bash
-npm install
+cd packages/director
+npx tsx --test test/*.test.ts   # or: yarn workspace @fastbreak/director test
+# (the npm scripts below also work from this folder)
 npm test                          # 20 unit tests
 npm run headless -- 51 TPA        # print every decision over a simulated night
 npm run demo-timeline -- 51 TPA 5960 8   # decisions at real-time offsets for a given start/speed
