@@ -1,4 +1,4 @@
-import { MLB, runnersLabel, sportOf } from './sports';
+import { sportOf } from './sports';
 import type { GameInfo, GameInsight } from './types';
 
 export { periodLabel, clockLabel } from './labels';
@@ -7,7 +7,6 @@ export { BREAK_NAMES, breakName } from './sports';
 export function matchup(info: GameInfo): string {
   return `${info.away.code} @ ${info.home.code}`;
 }
-
 
 export function durationLabel(ms: number): string {
   const s = Math.round(ms / 1000);
@@ -29,12 +28,7 @@ export function situation(g: GameInsight): string {
   const sport = sportOf(g.info);
   const margin = Math.abs(s.homeScore - s.awayScore);
   const state = margin === 0 ? 'tied' : `${margin}-${sport.unit.short} game`;
-  const [period, clock] = gameClock(g);
-  if (sport === MLB) {
-    const runners = s.phase === 'live' ? runnersLabel(s.bases) : undefined;
-    return `${[period, clock, runners].filter(Boolean).join(', ')} · ${state}`;
-  }
-  return `${period} ${clock} · ${state}`;
+  return `${sport.whenLabel(s, g.displayClock)} · ${state}`;
 }
 
 export function scoreLine(g: GameInsight): string {
@@ -45,7 +39,7 @@ export function scoreLine(g: GameInsight): string {
 export function whyWatch(g: GameInsight): string {
   const bits: string[] = [];
   const sport = sportOf(g.info);
-  if (g.tags.includes('overtime')) bits.push(sport === MLB ? 'extra innings' : 'overtime');
+  if (g.tags.includes('overtime')) bits.push(sport.overtimeWord);
   else if (g.tags.includes('crunch')) bits.push(sport.crunchWord);
   else if (g.tags.includes('close')) bits.push('close game');
   if (g.tags.includes('run')) bits.push('on a run');

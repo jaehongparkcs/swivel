@@ -100,7 +100,12 @@ export function simulateNfl(info: GameInfo, opts: SimOptions): FeedEvent[] {
     clock = 0;
     emit('period_end', `End of ${period <= 4 ? `Q${period}` : 'OT'}`, {}, false);
     if (period >= 4 && (score.home !== score.away || period >= 5)) {
-      emit('game_end', `Final${period >= 5 ? ' (OT)' : ''}: ${info.away.code} ${score.away}, ${info.home.code} ${score.home}`, {}, false);
+      emit(
+        'game_end',
+        `Final${period >= 5 ? ' (OT)' : ''}: ${info.away.code} ${score.away}, ${info.home.code} ${score.home}`,
+        {},
+        false,
+      );
       return false;
     }
     t += wall(period === 2 ? 'halftime' : period >= 4 ? 'overtime' : 'quarter');
@@ -190,7 +195,12 @@ export function simulateNfl(info: GameInfo, opts: SimOptions): FeedEvent[] {
       const intercepted = pass;
       const kicker = poss;
       newDrive(other(poss), Math.max(5, Math.min(80, 100 - yard + Math.round(between(rng, -10, 15)))));
-      emit('turnover', `${intercepted ? 'Intercepted' : 'Fumble'}! ${code(poss)} takes over at the ${fieldLabel()}`, { team: kicker }, false);
+      emit(
+        'turnover',
+        `${intercepted ? 'Intercepted' : 'Fumble'}! ${code(poss)} takes over at the ${fieldLabel()}`,
+        { team: kicker },
+        false,
+      );
       if (rng() < 0.4) stoppage('mandatory_timeout', 'TV timeout', 'tv');
       continue;
     }
@@ -223,8 +233,16 @@ export function simulateNfl(info: GameInfo, opts: SimOptions): FeedEvent[] {
         continue;
       }
     }
-    const what = outcome === 'incomplete' ? 'incomplete pass' : `${pass ? 'pass' : 'run'} for ${gain} yard${Math.abs(gain) === 1 ? '' : 's'}`;
-    emit('play', `${code(poss)} ${what}; ${down}${['', 'st', 'nd', 'rd', 'th'][down]} & ${toGo} at the ${fieldLabel()}`, {}, !stopsClock);
+    const what =
+      outcome === 'incomplete'
+        ? 'incomplete pass'
+        : `${pass ? 'pass' : 'run'} for ${gain} yard${Math.abs(gain) === 1 ? '' : 's'}`;
+    emit(
+      'play',
+      `${code(poss)} ${what}; ${down}${['', 'st', 'nd', 'rd', 'th'][down]} & ${toGo} at the ${fieldLabel()}`,
+      {},
+      !stopsClock,
+    );
     clock -= between_;
 
     // Late in a half the defense, if trailing or tied, burns timeouts to save clock.

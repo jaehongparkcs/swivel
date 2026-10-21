@@ -12,7 +12,16 @@ export interface Slate {
   endsAt: number;
 }
 
-const CHANNEL_NAMES = ['Courtside 1', 'Courtside 2', 'Regional Sports East', 'Regional Sports West', 'Hoops Network', 'Sports Plus', 'Metro Sports', 'Courtside 3'];
+const CHANNEL_NAMES = [
+  'Courtside 1',
+  'Courtside 2',
+  'Regional Sports East',
+  'Regional Sports West',
+  'Hoops Network',
+  'Sports Plus',
+  'Metro Sports',
+  'Courtside 3',
+];
 
 /** Tip-off offsets (minutes) for an 8-game night: early wave, late wave. */
 const TIP_OFFSETS_MIN = [0, 0, 5, 30, 30, 35, 60, 90];

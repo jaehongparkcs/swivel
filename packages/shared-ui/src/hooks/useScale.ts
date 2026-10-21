@@ -1,13 +1,12 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
+import { Dimensions } from 'react-native';
 
-import {create} from 'react-native-pixel-perfect';
+/** Layouts are designed at 1920x1080 and scaled by screen diagonal to the real display. */
+const DESIGN = { width: 1920, height: 1080 };
 
-const designResolution = {
-  width: 1920,
-  height: 1080
-} 
+const { width, height } = Dimensions.get('window');
+const RATIO = Math.hypot(width, height) / Math.hypot(DESIGN.width, DESIGN.height);
 
-export const scaledPixels = create(designResolution)
-
-
+/** Design pixels (at 1920x1080) to device pixels. */
+export function scaledPixels(size: number): number {
+  return RATIO * size;
+}

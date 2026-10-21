@@ -10,10 +10,8 @@
  *   tsx scripts/seamless.ts [nights=40] [firstSeed=1]
  *   MUST_SEE=2.5 tsx scripts/seamless.ts    # try a lower crunch-time bar for multiview
  */
-import { Director, buildSlate, isCommercial, ReplayLineupSource, type DirectorView, type SportId } from '../src';
-
-/** SPORTS=nba,nfl,mlb for a mixed night (default: basketball only). */
-const SPORTS = process.env.SPORTS ? (process.env.SPORTS.split(',') as SportId[]) : undefined;
+import { Director, buildSlate, isCommercial, ReplayLineupSource, type DirectorView } from '../src';
+import { SPORTS } from './env';
 
 const nights = Number(process.argv[2] ?? 40);
 const firstSeed = Number(process.argv[3] ?? 1);
@@ -37,7 +35,17 @@ export function measure(seed: number): SeamlessStats {
   const fav = slate.games[seed % slate.games.length].home.code;
   const mustSee = process.env.MUST_SEE ? { mustSeeLeverage: Number(process.env.MUST_SEE) } : {};
   const d = new Director(src.games(), { favorites: [fav], likes: [], loyalty: 'team-first', multiview: true }, mustSee);
-  const s: SeamlessStats = { hours: 0, changes: 0, shortStates: 0, flashes: 0, flashesToBreak: 0, shortLayouts: 0, commercialMs: 0, multiMs: 0, watchedMs: 0 };
+  const s: SeamlessStats = {
+    hours: 0,
+    changes: 0,
+    shortStates: 0,
+    flashes: 0,
+    flashesToBreak: 0,
+    shortLayouts: 0,
+    commercialMs: 0,
+    multiMs: 0,
+    watchedMs: 0,
+  };
   const shownSince = new Map<string, number>();
   let layout = '';
   let layoutSince = 0;
@@ -86,7 +94,17 @@ export function measure(seed: number): SeamlessStats {
 
 const isMain = process.argv[1]?.endsWith('seamless.ts');
 if (isMain) {
-  const total: SeamlessStats = { hours: 0, changes: 0, shortStates: 0, flashes: 0, flashesToBreak: 0, shortLayouts: 0, commercialMs: 0, multiMs: 0, watchedMs: 0 };
+  const total: SeamlessStats = {
+    hours: 0,
+    changes: 0,
+    shortStates: 0,
+    flashes: 0,
+    flashesToBreak: 0,
+    shortLayouts: 0,
+    commercialMs: 0,
+    multiMs: 0,
+    watchedMs: 0,
+  };
   for (let seed = firstSeed; seed < firstSeed + nights; seed++) {
     const s = measure(seed);
     for (const k of Object.keys(total) as (keyof SeamlessStats)[]) total[k] += s[k];

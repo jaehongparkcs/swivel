@@ -22,8 +22,14 @@ export interface RecapScale {
  */
 export interface Sport {
   id: SportId;
+  /** "Basketball". */
+  name: string;
   /** Short label for the rail and scorebug. Generic, not a league name. */
   tag: string;
+  /** "Tips in 5m" / "Tip-off" (rail, before the start). */
+  startWords: { soon: string; now: string };
+  /** "overtime", "extra innings". */
+  overtimeWord: string;
   unit: { one: string; many: string; short: string };
   /** Game clock before the start (seconds), for the pregame scorebug. */
   startClock: number;
@@ -34,6 +40,8 @@ export interface Sport {
   periodLabel(period: number, s?: GameSnapshot): string;
   /** "2:41", or "2 outs" in baseball. */
   clockLabel(s: GameSnapshot, clock: number): string;
+  /** Where the game is, for captions: "4th 2:41", or "Bot 8th, 2 outs, runner on 2nd". */
+  whenLabel(s: GameSnapshot, clock: number): string;
   /** Late enough that a high-leverage moment counts as crunch time. */
   late(s: GameSnapshot): boolean;
   /** Far enough along that a lopsided score is a blowout. */
@@ -43,7 +51,10 @@ export interface Sport {
   runPoints: number;
   /** Typical on-air length of each stoppage, ms. */
   breakDurationMs: Record<BreakKind, number>;
+  /** Overrides of the shared break names ("TV timeout" for a football media timeout). */
   breakNames: Partial<Record<BreakKind, string>>;
+  /** Overrides of the shared short break names on the rail. */
+  breakShortNames: Partial<Record<BreakKind, string>>;
   /** Probability of a stoppage in the next ~45 s of live play. */
   breakHazard(s: GameSnapshot, clock: number, leverage: number): number;
   breakForPeriodEnd(e: FeedEvent): BreakKind;
@@ -61,7 +72,7 @@ export function clockSecondsLeft(period: number, clock: number, periodSec: numbe
 }
 
 export function ordinal(n: number): string {
-  const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th';
+  const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
   return `${n}${s}`;
 }
 

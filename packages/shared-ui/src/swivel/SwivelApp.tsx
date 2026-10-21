@@ -1,21 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { buildSlate, DEFAULT_PREFS, type TeamPrefs } from '@swivel/director';
-import RemoteControlManager from '../app/remote-control/RemoteControlManager';
-import { SupportedKeys } from '../app/remote-control/SupportedKeys';
-import { readDemoConfig, SPEEDS, type DemoConfig } from './demoConfig';
-import SplashScreen from './SplashScreen';
-import SetupScreen from './SetupScreen';
-import { useSwivel } from './useSwivel';
-import Stage, { STAGE_W } from './Stage';
-import GameRail from './GameRail';
-import DirectorCaption from './DirectorCaption';
-import StatusBar from './StatusBar';
-import TeamsScreen, { cycleTeam, LOYALTIES, TEAM_COLS, teamRows, teamsGrid, tonightsTeams } from './TeamsScreen';
-import { fb, px } from './theme';
-
-type Focus = { zone: 'rail'; index: number } | { zone: 'stage'; index: number };
-
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { DEFAULT_PREFS, SPORT_IDS, SPORTS, type SportId, type TeamPrefs } from '@swivel/director';
+import RemoteControlManager from '../remote-control/RemoteControlManager';
+import { SupportedKeys } from '../remote-control/SupportedKeys';
+import SetupScreen from './screens/SetupScreen';
+import SplashScreen from './screens/SplashScreen';
+import WatchScreen from './screens/WatchScreen';
+import { readDemoConfig } from './state/demoConfig';
+import { demoLineup } from './state/lineup';
+import { tonightsTeams } from './state/teams';
 
 /** Splash, then "Set up tonight", then watching. The replay clock starts when you press Start watching. */
 export default function SwivelApp() {
@@ -23,7 +15,8 @@ export default function SwivelApp() {
   const [stage, setStage] = useState<'splash' | 'setup' | 'watch'>(config.intro === false ? 'watch' : 'splash');
   const initial: TeamPrefs = { ...DEFAULT_PREFS, loyalty: 'team-first', favorites: config.favorites, likes: [] };
   const [prefs, setPrefs] = useState<TeamPrefs>(initial);
-  const games = useMemo(() => buildSlate(config.seed, 8, { sports: config.sports }).games, [config]);
+  const lineup = useMemo(() => demoLineup(config), [config]);
+  const games = useMemo(() => lineup.source.games(), [lineup]);
   const teams = useMemo(() => tonightsTeams(games), [games]);
   const toSetup = useCallback(() => setStage('setup'), []);
 
@@ -37,8 +30,8 @@ export default function SwivelApp() {
   }, [stage]);
 
   if (stage === 'splash') {
-    const count = (s: string) => games.filter((g) => (g.sport ?? 'nba') === s).length;
-    const parts = [['nba', 'basketball'], ['nfl', 'football'], ['mlb', 'baseball']].filter(([s]) => count(s)).map(([s, n]) => `${count(s)} ${n}`);
+    const count = (id: SportId) => games.filter((g) => (g.sport ?? 'nba') === id).length;
+    const parts = SPORT_IDS.filter((id) => count(id)).map((id) => `${count(id)} ${SPORTS[id].name.toLowerCase()}`);
     return <SplashScreen games={games.length} sports={`Play-by-play for ${parts.join(', ')}`} onDone={toSetup} />;
   }
   if (stage === 'setup') {
@@ -53,136 +46,5 @@ export default function SwivelApp() {
       />
     );
   }
-  return <WatchScreen config={config} initialPrefs={prefs} />;
+  return <WatchScreen lineup={lineup} speed={config.speed} initialPrefs={prefs} />;
 }
-
-function WatchScreen({ config, initialPrefs }: { config: DemoConfig; initialPrefs: TeamPrefs }) {
-  const fbk = useSwivel(config, initialPrefs);
-  const { view } = fbk;
-  const [screen, setScreen] = useState<'watch' | 'teams'>('watch');
-  const [focus, setFocus] = useState<Focus | null>(null);
-  const [teamsFocus, setTeamsFocus] = useState<[number, number]>([0, 0]);
-  const [prefs, setPrefsState] = useState<TeamPrefs>(fbk.prefs);
-
-  // Rail order is stable (by tip time) so focus never jumps under the cursor.
-  const order = useMemo(
-    () => [...fbk.slate.games].sort((a, b) => a.scheduledStart - b.scheduledStart).map((g) => g.id),
-    [fbk.slate],
-  );
-
-  const teams = useMemo(() => tonightsTeams(fbk.slate.games), [fbk.slate]);
-
-  // Latest state for the key handler without re-subscribing every tick.
-  const live = useRef({ view, focus, screen, teamsFocus, prefs, order, fbk, teams });
-  live.current = { view, focus, screen, teamsFocus, prefs, order, fbk, teams };
-
-  useEffect(() => {
-    const onKey = (key: SupportedKeys) => {
-      const s = live.current;
-      const tiles = s.view.slots.length;
-
-      if (key === SupportedKeys.PlayPause) return s.fbk.toggleLock();
-      if (key === SupportedKeys.FastForward) return s.fbk.skip();
-      if (key === SupportedKeys.Rewind) {
-        const i = SPEEDS.indexOf(s.fbk.speed);
-        s.fbk.setSpeed(SPEEDS[(i + 1) % SPEEDS.length]);
-        return;
-      }
-
-      if (s.screen === 'teams') {
-        const grid = teamsGrid(s.teams);
-        const optRow = teamRows(s.teams);
-        const [r, c] = s.teamsFocus;
-        const clampC = (row: number, col: number) => Math.min(col, grid[row] - 1);
-        if (key === SupportedKeys.Back) return setScreen('watch');
-        if (key === SupportedKeys.Up) return setTeamsFocus([Math.max(0, r - 1), clampC(Math.max(0, r - 1), c)]);
-        if (key === SupportedKeys.Down) return setTeamsFocus([Math.min(grid.length - 1, r + 1), clampC(Math.min(grid.length - 1, r + 1), c)]);
-        if (key === SupportedKeys.Left) return setTeamsFocus([r, Math.max(0, c - 1)]);
-        if (key === SupportedKeys.Right) return setTeamsFocus([r, Math.min(grid[r] - 1, c + 1)]);
-        if (key === SupportedKeys.Enter) {
-          let next = s.prefs;
-          if (r < optRow) next = cycleTeam(s.prefs, s.teams[r * TEAM_COLS + c].code);
-          else if (r === optRow && c < 3) next = { ...s.prefs, loyalty: LOYALTIES[c].id };
-          else if (r === optRow && c === 3) next = { ...s.prefs, multiview: !s.prefs.multiview };
-          else if (r === optRow + 1 && c === 0) return setScreen('watch');
-          else if (r === optRow + 1 && c === 1) return s.fbk.resetLearning();
-          setPrefsState(next);
-          s.fbk.setPrefs(next);
-        }
-        return;
-      }
-
-      // Watch screen. First press only reveals focus.
-      if (!s.focus) {
-        if (key !== SupportedKeys.Back) setFocus({ zone: 'rail', index: 1 + Math.max(0, s.order.indexOf(s.view.audio ?? '')) });
-        return;
-      }
-      const f = s.focus;
-      if (key === SupportedKeys.Back) return setFocus(null);
-      if (f.zone === 'rail') {
-        const max = s.order.length;
-        if (key === SupportedKeys.Up) return setFocus({ zone: 'rail', index: Math.max(0, f.index - 1) });
-        if (key === SupportedKeys.Down) return setFocus({ zone: 'rail', index: Math.min(max, f.index + 1) });
-        if (key === SupportedKeys.Left) return setFocus({ zone: 'stage', index: tiles - 1 });
-        if (key === SupportedKeys.Enter) {
-          if (f.index === 0) return setScreen('teams');
-          s.fbk.watch(s.order[f.index - 1]);
-          setFocus(null);
-        }
-        return;
-      }
-      // Stage
-      const cols = tiles > 1 ? 2 : 1;
-      if (key === SupportedKeys.Right) {
-        if (f.index % cols === cols - 1 || f.index + 1 >= tiles) return setFocus({ zone: 'rail', index: 1 });
-        return setFocus({ zone: 'stage', index: f.index + 1 });
-      }
-      if (key === SupportedKeys.Left) return setFocus({ zone: 'stage', index: Math.max(0, f.index - 1) });
-      if (key === SupportedKeys.Up && f.index >= 2) return setFocus({ zone: 'stage', index: f.index - 2 });
-      if (key === SupportedKeys.Down && f.index + 2 < tiles) return setFocus({ zone: 'stage', index: f.index + 2 });
-      if (key === SupportedKeys.Enter) {
-        if (tiles > 1) s.fbk.watch(s.view.slots[f.index]);
-        else s.fbk.toggleLock();
-        setFocus(null);
-      }
-    };
-    const listener = RemoteControlManager.addKeydownListener(onKey);
-    return () => RemoteControlManager.removeKeydownListener(listener);
-  }, []);
-
-  if (screen === 'teams') {
-    return (
-      <View style={styles.root}>
-        <TeamsScreen prefs={prefs} focus={teamsFocus} learned={view.learned} teams={teams} />
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.root}>
-      <View style={styles.main}>
-        <View>
-          <View style={styles.brandRow}>
-            <Image source={require('../assets/images/swivel_mark.png')} style={styles.mark} />
-            <Text style={styles.brand}>Swivel</Text>
-            <Text style={styles.brandSub}>Autopilot for tonight's games</Text>
-          </View>
-          <Stage view={view} focusedSlot={focus?.zone === 'stage' ? focus.index : null} />
-          <DirectorCaption decisions={view.decisions} width={STAGE_W} />
-        </View>
-        <View style={{ width: px(24) }} />
-        <GameRail view={view} order={order} focused={focus?.zone === 'rail' ? focus.index : null} favorites={prefs.favorites} />
-      </View>
-      <StatusBar view={view} speed={fbk.speed} />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: fb.ink, paddingHorizontal: px(32), paddingTop: px(20), paddingBottom: px(10) },
-  main: { flex: 1, flexDirection: 'row' },
-  brandRow: { flexDirection: 'row', alignItems: 'center', height: px(56), marginBottom: px(14) },
-  mark: { width: px(48), height: px(48), marginRight: px(12) },
-  brand: { fontSize: px(34), fontWeight: '900', color: fb.amber, letterSpacing: px(-0.5) },
-  brandSub: { fontSize: px(22), fontWeight: '600', color: fb.dim, marginLeft: px(16) },
-});

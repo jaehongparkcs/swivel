@@ -40,8 +40,6 @@ for (let seed = from; seed <= to; seed++) {
       const view = d.tick(t);
       frames.push({ t, view, sports: new Set(view.slots.map((id) => sportOfId.get(id)!)) });
     }
-    const all = frames[frames.length - 1].view.decisions; // last 60 only; recompute per window from frames
-    void all;
     const win = (realSec * speed * 1000) / STEP;
     for (let i = 0; i + win < frames.length; i += 30) {
       const w = frames.slice(i, i + win);
@@ -78,8 +76,31 @@ for (let seed = from; seed <= to; seed++) {
       if (!hops || !returns) continue;
       const favFinalInWindow = f.t + g.channel.delayMs <= t1 && f.t + g.channel.delayMs > t0 ? 1 : 0;
       const score =
-        mixedMulti * 2 + threeSportMulti * 4 + big * 2 + favCrunch * 3 + favFinalInWindow * 40 + Math.min(hops, 3) * 10 + Math.min(returns, 2) * 10 - short * 25 - Math.max(0, changes - 14) * 5;
-      rows.push({ seed, fav, sport: g.sport ?? 'nba', startSec: Math.round(t0 / 1000), mixedMulti, threeSportMulti, big, favCrunch, favFinal: favFinalInWindow, hops, returns, changes, short, score });
+        mixedMulti * 2 +
+        threeSportMulti * 4 +
+        big * 2 +
+        favCrunch * 3 +
+        favFinalInWindow * 40 +
+        Math.min(hops, 3) * 10 +
+        Math.min(returns, 2) * 10 -
+        short * 25 -
+        Math.max(0, changes - 14) * 5;
+      rows.push({
+        seed,
+        fav,
+        sport: g.sport ?? 'nba',
+        startSec: Math.round(t0 / 1000),
+        mixedMulti,
+        threeSportMulti,
+        big,
+        favCrunch,
+        favFinal: favFinalInWindow,
+        hops,
+        returns,
+        changes,
+        short,
+        score,
+      });
     }
   }
 }

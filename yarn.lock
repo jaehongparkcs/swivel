@@ -4107,9 +4107,9 @@ __metadata:
   dependencies:
     "@swivel/director": "workspace:*"
     "@types/react": "npm:~19.1.0"
+    mitt: "npm:^3.0.1"
     typescript: "npm:~5.7.0"
   peerDependencies:
-    "@react-navigation/native": "*"
     react: "*"
     react-native: "*"
   languageName: unknown
@@ -15607,7 +15607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mitt@npm:3.0.1":
+"mitt@npm:3.0.1, mitt@npm:^3.0.1":
   version: 3.0.1
   resolution: "mitt@npm:3.0.1"
   checksum: 10c0/3ab4fdecf3be8c5255536faa07064d05caa3dd332bd318ff02e04621f7b3069ca1de9106cfe8e7ced675abfc2bec2ce4c4ef321c4a1bb1fb29df8ae090741913
@@ -17293,15 +17293,6 @@ __metadata:
   checksum: 10c0/3daf9c56c0ce67a6a8e256307065b78899470fdf4632bac5894bc1556ae9fdd96c1881813b025ed250d33c624518861102f2daf0bef927d3e731118d105418e0
   languageName: node
   linkType: hard
-
-"react-native-multi-tv-app-sample@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "react-native-multi-tv-app-sample@workspace:."
-  dependencies:
-    husky: "npm:^9.1.6"
-    prettier: "npm:^3.3.3"
-  languageName: unknown
-  linkType: soft
 
 "react-native-pixel-perfect@npm:*, react-native-pixel-perfect@npm:^1.0.2":
   version: 1.0.2
@@ -19467,6 +19458,20 @@ __metadata:
   checksum: 10c0/6c4032340701a9950865f7ae8ef38578d8d7053f5e10518076e6554a9381fa91bd9c6850193695c141f32b21f979c985db07265a758867bac95de05f7d8aeb39
   languageName: node
   linkType: hard
+
+"swivel@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "swivel@workspace:."
+  dependencies:
+    "@typescript-eslint/eslint-plugin": "npm:^8.12.2"
+    "@typescript-eslint/parser": "npm:^8.12.2"
+    eslint: "npm:^9.13.0"
+    eslint-plugin-prettier: "npm:^5.2.1"
+    eslint-plugin-react: "npm:^7.37.1"
+    husky: "npm:^9.1.6"
+    prettier: "npm:^3.3.3"
+  languageName: unknown
+  linkType: soft
 
 "symbol-observable@npm:1.0.1":
   version: 1.0.1

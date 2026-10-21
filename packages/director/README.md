@@ -73,14 +73,17 @@ npm run find-demo -- 1 150        # (night, favorite team) pairs that make a goo
 ```
 src/types.ts        FeedEvent, GameSnapshot, GameInsight, Decision, DirectorView
 src/gameState.ts    reducer + per-game timeline (feed vs screen views, clock interpolation)
-src/sports/         per-sport rules (basketball, football, baseball)
-src/winprob.ts      basketball win probability + leverage index
-src/breakModel.ts   stoppage durations, hazard, runs
+src/sports/         Sport interface and registry; basketball, football, baseball
+src/winprob.ts      basketball win probability + leverage index (wrapped by sports/nba.ts)
+src/breakModel.ts   basketball stoppage durations and hazard; runs
+src/labels.ts       period / clock labels
+src/explain.ts      captions: matchup, situation, why-watch, break names
 src/director.ts     the policy
 src/learner.ts      on-device taste learning from remote presses
 src/recap.ts        "What you missed" catch-ups
 src/lineup.ts       LineupSource / PlaybackController + replay source
-src/sim/            simulators, fictional leagues, slates
+src/sim/            simulators (one per sport), fictional leagues, slates
+scripts/            runHeadless, demoTimeline, findDemo, findMixedDemo, seamless (SPORTS=nba,nfl,mlb for mixed nights)
 ```
 
 ## Roadmap

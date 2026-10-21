@@ -81,7 +81,10 @@ export function runnersLabel(bases: number | undefined): string | undefined {
 
 export const MLB: Sport = {
   id: 'mlb',
+  name: 'Baseball',
   tag: 'BASEBALL',
+  startWords: { soon: 'First pitch in', now: 'First pitch' },
+  overtimeWord: 'extra innings',
   unit: { one: 'run', many: 'runs', short: 'run' },
   startClock: 0,
   homeWinProb(s) {
@@ -103,6 +106,10 @@ export const MLB: Sport = {
     const outs = Math.min(3, s.outs ?? 0);
     return `${outs} out${outs === 1 ? '' : 's'}`;
   },
+  whenLabel(s, clock) {
+    const runners = s.phase === 'live' ? runnersLabel(s.bases) : undefined;
+    return [MLB.periodLabel(s.period, s), MLB.clockLabel(s, clock), runners].filter(Boolean).join(', ');
+  },
   late: (s) => inningOf(s.period) >= 8,
   blowoutStage: (s) => inningOf(s.period) >= 6,
   overtime: (s) => inningOf(s.period) > REGULATION_INNINGS,
@@ -119,11 +126,13 @@ export const MLB: Sport = {
     pitching: 140_000,
   },
   breakNames: { inning: 'Inning break', pitching: 'Pitching change', review: 'Replay review' },
+  breakShortNames: { pitching: 'Pitching chg' },
   breakHazard(s) {
     if (s.phase !== 'live') return 0;
     const outs = s.outs ?? 0;
     const ps = [0.03];
-    if (outs === 2) ps.push(0.35); // the third out ends the half-inning
+    if (outs === 2)
+      ps.push(0.35); // the third out ends the half-inning
     else if (outs === 1 && (s.bases ?? 0) & 1) ps.push(0.08); // double play
     if (inningOf(s.period) >= 6 && (s.bases ?? 0) > 0) ps.push(0.06); // pitching change
     return combineHazards(ps);

@@ -36,11 +36,19 @@ test('hops on a timeout and returns when play resumes', () => {
   ];
   let v = run(d, events, 50);
   assert.deepEqual(v.slots, ['A'], 'starts on the favorite');
-  v = run(d, events.filter((e) => e.t > 50_000), 120);
+  v = run(
+    d,
+    events.filter((e) => e.t > 50_000),
+    120,
+  );
   assert.deepEqual(v.slots, ['B'], 'hopped during the timeout');
   assert.equal(v.returnTo, 'A');
   assert.equal(v.decisions[v.decisions.length - 1].kind, 'break-hop');
-  v = run(d, events.filter((e) => e.t > 120_000), 260);
+  v = run(
+    d,
+    events.filter((e) => e.t > 120_000),
+    260,
+  );
   assert.deepEqual(v.slots, ['A'], 'came back');
   assert.equal(v.decisions[v.decisions.length - 1].kind, 'return');
 });
@@ -127,23 +135,39 @@ test('two crunch-time games split the screen; a timeout keeps its tile, a quarte
     a(40, 'timeout', 4, 170, 100, 101, { team: 'home' }),
     a(150, 'resume', 4, 170, 100, 101),
   ];
-  let v = run(d, events.filter((e) => e.t <= 35_000), 35);
+  let v = run(
+    d,
+    events.filter((e) => e.t <= 35_000),
+    35,
+  );
   assert.equal(v.layout, 'split');
   assert.deepEqual([...v.slots].sort(), ['A', 'B']);
   assert.ok(!v.slots.includes('C'), 'blowout stays off screen');
 
-  v = run(d, events.filter((e) => e.t > 35_000 && e.t <= 60_000), 60);
+  v = run(
+    d,
+    events.filter((e) => e.t > 35_000 && e.t <= 60_000),
+    60,
+  );
   assert.equal(v.layout, 'split', 'a timeout does not tear the grid down');
   assert.equal(v.audio, 'B', 'audio moves to the game with action');
   assert.equal(v.insights.find((g) => g.info.id === 'A')!.screen.phase, 'break');
 
-  v = run(d, events.filter((e) => e.t > 60_000), 170);
+  v = run(
+    d,
+    events.filter((e) => e.t > 60_000),
+    170,
+  );
   assert.equal(v.layout, 'split', 'still split when play resumes');
   assert.deepEqual([...v.slots].sort(), ['A', 'B']);
   assert.ok(!v.decisions.some((x) => x.kind === 'multiview-off'), 'never collapsed');
 
   // A quarter break is long: that game leaves the grid.
-  const q = run(d, [feed('A')(1, 'period_end', 4, 0, 100, 101)].map((e) => ({ ...e, seq: 99, t: 175_000 })), 200);
+  const q = run(
+    d,
+    [feed('A')(1, 'period_end', 4, 0, 100, 101)].map((e) => ({ ...e, seq: 99, t: 175_000 })),
+    200,
+  );
   assert.equal(q.layout, 'single');
   assert.deepEqual(q.slots, ['B']);
 });
@@ -159,13 +183,25 @@ test('team first: your team is preferred over a closer game and always gets audi
     a(30, 'timeout', 3, 580, 70, 64, { team: 'away' }),
     a(200, 'resume', 3, 580, 70, 64),
   ];
-  let v = run(d, events.filter((e) => e.t <= 20_000), 20);
+  let v = run(
+    d,
+    events.filter((e) => e.t <= 20_000),
+    20,
+  );
   assert.equal(v.slots[0], 'A', 'your team gets the big tile');
   assert.equal(v.audio, 'A');
-  v = run(d, events.filter((e) => e.t > 20_000 && e.t <= 60_000), 60);
+  v = run(
+    d,
+    events.filter((e) => e.t > 20_000 && e.t <= 60_000),
+    60,
+  );
   assert.deepEqual(v.slots, ['A', 'B'], 'your team keeps its tile through the timeout');
   assert.equal(v.audio, 'B', 'audio follows the game with action');
-  v = run(d, events.filter((e) => e.t > 60_000), 210);
+  v = run(
+    d,
+    events.filter((e) => e.t > 60_000),
+    210,
+  );
   assert.equal(v.audio, 'A', 'back to your team, even though the other game is tighter');
 });
 
@@ -173,7 +209,11 @@ test('honest countdown: resume is known from the feed before the stream shows it
   const A = game('A', 0, 30_000);
   const a = feed('A');
   const d = new Director([A], prefs);
-  const v = run(d, [a(0, 'tipoff', 1, 720, 0, 0), a(10, 'timeout', 1, 710, 0, 0, { team: 'home' }), a(100, 'resume', 1, 710, 0, 0)], 110);
+  const v = run(
+    d,
+    [a(0, 'tipoff', 1, 720, 0, 0), a(10, 'timeout', 1, 710, 0, 0, { team: 'home' }), a(100, 'resume', 1, 710, 0, 0)],
+    110,
+  );
   const g = v.insights[0];
   assert.equal(g.screen.phase, 'break');
   assert.equal(g.resumeIncomingInMs, 20_000, 'feed resumed at 100s, stream (30s behind) at 130s');

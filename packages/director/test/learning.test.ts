@@ -18,7 +18,7 @@ function setup() {
   return { d, A, B };
 }
 
-test('picking a team\'s games teaches the director to prefer them', () => {
+test("picking a team's games teaches the director to prefer them", () => {
   const { d, A, B } = setup();
   const before = d.tick(1000).insights.find((g) => g.info.id === 'B')!.watchScore;
   d.manualSelect('B', 2000);
@@ -38,14 +38,21 @@ test('skipping a game autopilot chose teaches the director to avoid it', () => {
   const C = game('C', 2);
   const [a, b, c] = [feed('A'), feed('B'), feed('C')];
   const d = new Director([A, B, C], prefs);
-  d.ingestAll([a(0, 'period_start', 2, 600, 40, 38), b(0, 'period_start', 2, 600, 40, 38), c(0, 'period_start', 2, 600, 40, 38)]);
+  d.ingestAll([
+    a(0, 'period_start', 2, 600, 40, 38),
+    b(0, 'period_start', 2, 600, 40, 38),
+    c(0, 'period_start', 2, 600, 40, 38),
+  ]);
   const first = d.tick(1000).audio!;
   d.skip(2000);
   const v = d.tick(3000);
   const skipped = v.insights.find((g) => g.info.id === first)!;
   const others = v.insights.filter((g) => g.info.id !== first);
   assert.ok(d.tasteSnapshot().teams[skipped.info.home.code] < 0);
-  assert.ok(others.every((g) => g.watchScore > skipped.watchScore), 'skipped game now ranks last');
+  assert.ok(
+    others.every((g) => g.watchScore > skipped.watchScore),
+    'skipped game now ranks last',
+  );
   assert.notEqual(v.audio, first);
 });
 
@@ -79,12 +86,18 @@ test('recap: a comeback while you were away', () => {
 test('recap: nothing to say when you only missed a commercial', () => {
   const A = game('A', 0);
   const a = feed('A');
-  assert.equal(buildRecap(A, [a(0, 'timeout', 4, 300, 90, 88), a(150, 'resume', 4, 300, 90, 88)], 150_000, false), undefined);
+  assert.equal(
+    buildRecap(A, [a(0, 'timeout', 4, 300, 90, 88), a(150, 'resume', 4, 300, 90, 88)], 150_000, false),
+    undefined,
+  );
 });
 
 test('credit leans toward the team you already like, so the opponent learns less', () => {
   const g = (home: string, away: string) =>
-    ({ info: { id: `${away}@${home}`, home: { code: home }, away: { code: away } }, leverage: 1 }) as unknown as GameInsight;
+    ({
+      info: { id: `${away}@${home}`, home: { code: home }, away: { code: away } },
+      leverage: 1,
+    }) as unknown as GameInsight;
   const fresh = new TasteLearner();
   fresh.onPick(g('TPA', 'HNL'));
   assert.equal(fresh.affinity('TPA'), fresh.affinity('HNL'), 'no history: even split');

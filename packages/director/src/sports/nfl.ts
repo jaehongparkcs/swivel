@@ -1,3 +1,4 @@
+import { periodLabel } from '../labels';
 import { normCdf } from '../winprob';
 import type { FeedEvent, GameSnapshot } from '../types';
 import { clockSecondsLeft, combineHazards, type Sport } from './sport';
@@ -14,7 +15,8 @@ const REGULATION = 4 * PERIOD;
 const SIGMA_GAME = 13.5;
 const HOME_EDGE = 2;
 /** Expected points of a drive from its field position (own 25 ~ 1, midfield ~ 2.6, opponent's 10 ~ 5). */
-const expectedPoints = (fieldPos: number | undefined) => (fieldPos === undefined ? 2 : Math.max(0, -0.6 + 0.065 * fieldPos));
+const expectedPoints = (fieldPos: number | undefined) =>
+  fieldPos === undefined ? 2 : Math.max(0, -0.6 + 0.065 * fieldPos);
 const SWING = 3; // a field goal
 /** Scores come in 3s and 7s, so the last minutes keep more spread than a smooth model gives. */
 const LUMP_SIGMA = 3.5;
@@ -22,12 +24,20 @@ const LUMP_WINDOW = 300;
 
 const secondsLeft = (s: GameSnapshot, clock: number) => clockSecondsLeft(s.period, clock, PERIOD);
 
+/** Football clocks always read m:ss (no tenths). */
+function gameClockLabel(clock: number): string {
+  const c = Math.max(0, Math.ceil(clock));
+  return `${Math.floor(c / 60)}:${String(c % 60).padStart(2, '0')}`;
+}
+
 function params(s: GameSnapshot, secs: number) {
   const margin = s.homeScore - s.awayScore;
   const ball = s.possession === 'home' ? 1 : s.possession === 'away' ? -1 : 0;
   return {
     mu: margin + (HOME_EDGE * secs) / REGULATION + ball * expectedPoints(s.fieldPos),
-    sigma: Math.sqrt((SIGMA_GAME ** 2 * Math.max(secs, 4)) / REGULATION + LUMP_SIGMA ** 2 * Math.min(1, secs / LUMP_WINDOW)),
+    sigma: Math.sqrt(
+      (SIGMA_GAME ** 2 * Math.max(secs, 4)) / REGULATION + LUMP_SIGMA ** 2 * Math.min(1, secs / LUMP_WINDOW),
+    ),
   };
 }
 
@@ -41,7 +51,10 @@ const BASELINE = rawLeverage(EVEN_START, REGULATION);
 
 export const NFL: Sport = {
   id: 'nfl',
+  name: 'Football',
   tag: 'FOOTBALL',
+  startWords: { soon: 'Kickoff in', now: 'Kickoff' },
+  overtimeWord: 'overtime',
   unit: { one: 'point', many: 'points', short: 'pt' },
   startClock: PERIOD,
   homeWinProb(s, clock) {
@@ -56,11 +69,9 @@ export const NFL: Sport = {
     if (secs <= 0) return s.homeScore === s.awayScore ? 4 : 0;
     return rawLeverage(s, secs) / BASELINE;
   },
-  periodLabel: (p) => (p <= 4 ? ['1st', '2nd', '3rd', '4th'][p - 1] : p === 5 ? 'OT' : `${p - 4}OT`),
-  clockLabel(_s, clock) {
-    const c = Math.max(0, Math.ceil(clock));
-    return `${Math.floor(c / 60)}:${String(c % 60).padStart(2, '0')}`;
-  },
+  periodLabel,
+  clockLabel: (_s, clock) => gameClockLabel(clock),
+  whenLabel: (s, clock) => `${periodLabel(s.period)} ${gameClockLabel(clock)}`,
   late: (s) => s.period >= 4,
   blowoutStage: (s) => s.period >= 3,
   overtime: (s) => s.period >= 5,
@@ -77,6 +88,7 @@ export const NFL: Sport = {
     pitching: 135_000,
   },
   breakNames: { mandatory: 'TV timeout', review: 'Replay review', twominute: 'Two-minute warning' },
+  breakShortNames: { mandatory: 'TV timeout' },
   breakHazard(s, clock, leverage) {
     if (s.phase !== 'live') return 0;
     const ps = [0.08];

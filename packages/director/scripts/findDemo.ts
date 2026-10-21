@@ -3,10 +3,8 @@
  * your team in a close finish, break hops and returns, and a three-up or quad moment.
  *   tsx scripts/findDemo.ts [fromSeed] [toSeed]
  */
-import { Director, buildSlate, ReplayLineupSource, suggestDemoStart, type SportId } from '../src';
-
-/** SPORTS=nba,nfl,mlb for a mixed night (default: basketball only). */
-const SPORTS = process.env.SPORTS ? (process.env.SPORTS.split(',') as SportId[]) : undefined;
+import { Director, buildSlate, ReplayLineupSource, suggestDemoStart } from '../src';
+import { SPORTS } from './env';
 
 const from = Number(process.argv[2] ?? 1);
 const to = Number(process.argv[3] ?? 120);
@@ -38,7 +36,18 @@ for (let seed = from; seed <= to; seed++) {
     }
     const kinds = view!.decisions.map((x) => x.kind);
     const ot = f.period > (g.sport === 'mlb' ? 18 : 4) ? 1 : 0;
-    rows.push({ seed, fav, sport: g.sport ?? 'nba', ot, margin, big, split, firstBig: firstBig < 0 ? '' : Math.round(firstBig / 1000), returns: kinds.filter((k) => k === 'return').length, score: big * 4 + split + ot * 300 });
+    rows.push({
+      seed,
+      fav,
+      sport: g.sport ?? 'nba',
+      ot,
+      margin,
+      big,
+      split,
+      firstBig: firstBig < 0 ? '' : Math.round(firstBig / 1000),
+      returns: kinds.filter((k) => k === 'return').length,
+      score: big * 4 + split + ot * 300,
+    });
   }
 }
 rows.sort((a, b) => b.score - a.score);

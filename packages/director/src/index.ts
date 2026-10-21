@@ -3,8 +3,19 @@ export { Director, DEFAULT_CONFIG, DEFAULT_PREFS } from './director';
 export { GameTimeline, reduce, initialSnapshot } from './gameState';
 export { homeWinProb, leverageIndex, secondsLeft, normCdf } from './winprob';
 export { BREAK_DURATION_MS, breakHazard, breakRemainingMs, currentRun, isCommercial } from './breakModel';
-export { matchup, periodLabel, clockLabel, durationLabel, situation, scoreLine, whyWatch, gameClock, BREAK_NAMES, breakName } from './explain';
-export { SPORTS, sportOf, NBA, NFL, MLB, runnersLabel } from './sports';
+export {
+  matchup,
+  periodLabel,
+  clockLabel,
+  durationLabel,
+  situation,
+  scoreLine,
+  whyWatch,
+  gameClock,
+  BREAK_NAMES,
+  breakName,
+} from './explain';
+export { SPORTS, SPORT_IDS, sportOf, NBA, NFL, MLB, runnersLabel } from './sports';
 export type { Sport } from './sports';
 export { ReplayLineupSource } from './lineup';
 export type { LineupSource, PlaybackController } from './lineup';
@@ -12,7 +23,7 @@ export { buildSlate, suggestDemoStart } from './sim/slate';
 export type { Slate, SlateOptions } from './sim/slate';
 export { simulate, simulateGame } from './sim/simulateGame';
 export type { SimOptions } from './sim/simulateGame';
-export { TEAMS, NFL_TEAMS, MLB_TEAMS, TEAMS_BY_SPORT, ALL_TEAMS, TEAM_BY_CODE } from './sim/teams';
+export { TEAMS, NFL_TEAMS, MLB_TEAMS, TEAMS_BY_SPORT, ALL_TEAMS, TEAM_BY_CODE, sportOfTeam } from './sim/teams';
 export { makeRng } from './rng';
 export { TasteLearner } from './learner';
 export type { TasteSnapshot, Lesson } from './learner';

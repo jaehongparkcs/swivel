@@ -280,7 +280,12 @@ export class Director {
       const run = currentRun(screen);
       if (run.points >= sport.runPoints) tags.push('run');
     }
-    if (preference >= 1 && this.prefs.loyalty !== 'drama' && !tags.includes('blowout') && (live || screen.phase === 'break'))
+    if (
+      preference >= 1 &&
+      this.prefs.loyalty !== 'drama' &&
+      !tags.includes('blowout') &&
+      (live || screen.phase === 'break')
+    )
       tags.push('team-game');
 
     const hazard = breakIncomingInMs !== undefined ? 1 : sport.breakHazard(screen, displayClock, leverage);
@@ -300,7 +305,8 @@ export class Director {
       breakRisk: hazard,
       breakIncomingInMs,
       breakRemainingMs: breakRemainingMs(screen, tScreen, sport.breakDurationMs),
-      breakElapsedMs: screen.phase === 'break' && screen.breakStartedAt !== undefined ? tScreen - screen.breakStartedAt : undefined,
+      breakElapsedMs:
+        screen.phase === 'break' && screen.breakStartedAt !== undefined ? tScreen - screen.breakStartedAt : undefined,
       resumeIncomingInMs,
       preference,
       watchScore,
@@ -361,7 +367,12 @@ export class Director {
       onDeck,
       insights: all.sort((a, b) => b.watchScore - a.watchScore),
       decisions: [...this.decisions],
-      learned: { likes: this.learner.learnedLikes(), dislikes: this.learner.learnedDislikes(), drama: snap.drama, signals: snap.signals },
+      learned: {
+        likes: this.learner.learnedLikes(),
+        dislikes: this.learner.learnedDislikes(),
+        drama: snap.drama,
+        signals: snap.signals,
+      },
     };
   }
 
@@ -476,7 +487,10 @@ export class Director {
       // Prefer games that will still be live when this break ends (feed lookahead),
       // so one stoppage doesn't turn into two hops.
       const lasting = ranked
-        .filter((g) => !this.slots.includes(g.info.id) && !(g.breakIncomingInMs !== undefined && g.breakIncomingInMs < remaining))
+        .filter(
+          (g) =>
+            !this.slots.includes(g.info.id) && !(g.breakIncomingInMs !== undefined && g.breakIncomingInMs < remaining),
+        )
         .sort((a, b) => this.fillInScore(b) - this.fillInScore(a))[0];
       const alt = lasting ?? bestExcept(this.slots);
       if (!alt) return;
@@ -491,7 +505,8 @@ export class Director {
           : P.screen.breakKind === 'halftime'
             ? 'Back for the 2nd half.'
             : 'Back the moment play resumes.';
-      if (alt.tags.includes('team-game')) this.anchor = undefined; // already where you want to be
+      if (alt.tags.includes('team-game'))
+        this.anchor = undefined; // already where you want to be
       else if (!this.anchor || this.anchor === alt.info.id) {
         this.anchor = P.info.id;
         this.anchorFromStartup = false;
@@ -518,9 +533,21 @@ export class Director {
       this.anchorFromStartup = false;
       if (yours || R.watchScore >= P.watchScore - c.returnBias) {
         if (neverThere) {
-          this.switchPrimary(t, R, 'return', `Your team is back on`, `Play resumed in ${matchup(R.info)} · ${situation(R)}.`);
+          this.switchPrimary(
+            t,
+            R,
+            'return',
+            `Your team is back on`,
+            `Play resumed in ${matchup(R.info)} · ${situation(R)}.`,
+          );
         } else {
-          this.switchPrimary(t, R, 'return', `Play resumed in ${matchup(R.info)}`, `${yours ? 'Your team. ' : ''}Taking you back · ${situation(R)}.`);
+          this.switchPrimary(
+            t,
+            R,
+            'return',
+            `Play resumed in ${matchup(R.info)}`,
+            `${yours ? 'Your team. ' : ''}Taking you back · ${situation(R)}.`,
+          );
         }
       } else {
         this.log(t, 'hold', {
@@ -535,7 +562,12 @@ export class Director {
     if (R) return; // still waiting on the anchor game; don't wander off on upgrades
 
     // 4. Team first: if one of your teams is live and we're not on it, go there now.
-    if (this.prefs.loyalty === 'team-first' && !P.tags.includes('team-game') && t >= this.manualHoldUntil && this.settled(t)) {
+    if (
+      this.prefs.loyalty === 'team-first' &&
+      !P.tags.includes('team-game') &&
+      t >= this.manualHoldUntil &&
+      this.settled(t)
+    ) {
       const mine = ranked.find((g) => g.tags.includes('team-game') && g.info.id !== P.info.id);
       if (mine && !(this.mustSee.has(P.info.id) && !this.mustSee.has(mine.info.id) && P.leverage > 2 * mine.leverage)) {
         this.switchPrimary(t, mine, 'upgrade', `Your team: ${matchup(mine.info)}`, `${situation(mine)}.`);
@@ -603,7 +635,10 @@ export class Director {
       if (joinable.length < 2 || !canGrow) return false;
       const primary = this.slots[0];
       const ids = joinable.map((g) => g.info.id);
-      const ordered = ids.includes(primary) && !joinable[0].tags.includes('team-game') ? [primary, ...ids.filter((id) => id !== primary)] : ids;
+      const ordered =
+        ids.includes(primary) && !joinable[0].tags.includes('team-game')
+          ? [primary, ...ids.filter((id) => id !== primary)]
+          : ids;
       this.slots = ordered;
       this.layout = LAYOUT_FOR[ordered.length];
       this.lastLayoutAt = t;
@@ -669,7 +704,8 @@ export class Director {
     if (next.length <= 1) {
       // The last tile left is on a break: that's the real reason we're leaving the grid.
       const lone = next[0] ? byId.get(next[0]) : undefined;
-      const reasons: Array<[GameInsight, string]> = lone && !this.onAir(lone) ? [[lone, 'went to commercial'], ...removed] : removed;
+      const reasons: Array<[GameInsight, string]> =
+        lone && !this.onAir(lone) ? [[lone, 'went to commercial'], ...removed] : removed;
       const keepId = this.collapseTarget(byId, ranked, next[0])?.info.id;
       const told = reasons.filter(([g, r]) => !(g.info.id === keepId && r === 'cooled off'));
       const allCommercial = told.length >= 2 && told.every(([, r]) => r === 'went to commercial');
@@ -704,12 +740,24 @@ export class Director {
   }
 
   /** Where a collapsing grid lands. Never on a tile that is itself on a break; we come back to that one. */
-  private collapseTarget(byId: Map<string, GameInsight>, ranked: GameInsight[], keepId?: string): GameInsight | undefined {
+  private collapseTarget(
+    byId: Map<string, GameInsight>,
+    ranked: GameInsight[],
+    keepId?: string,
+  ): GameInsight | undefined {
     const kept = keepId ? byId.get(keepId) : undefined;
-    return (kept && this.onAir(kept) ? kept : undefined) || ranked.find((g) => g.tags.includes('team-game')) || ranked[0];
+    return (
+      (kept && this.onAir(kept) ? kept : undefined) || ranked.find((g) => g.tags.includes('team-game')) || ranked[0]
+    );
   }
 
-  private collapseTo(t: number, byId: Map<string, GameInsight>, ranked: GameInsight[], title: string, keepId?: string): void {
+  private collapseTo(
+    t: number,
+    byId: Map<string, GameInsight>,
+    ranked: GameInsight[],
+    title: string,
+    keepId?: string,
+  ): void {
     const kept = keepId ? byId.get(keepId) : undefined;
     const keep = this.collapseTarget(byId, ranked, keepId);
     const prevAudio = this.audio;
@@ -724,7 +772,9 @@ export class Director {
     // If a game we were featuring is on a break, remember it so we come back.
     for (const id of this.slots) if (byId.get(id)?.screen.phase === 'break') this.benched.add(id);
     // Come back to your team if it's one of the tiles on a break, else to the game we were listening to.
-    const yoursOnBreak = prevSlots.map((id) => byId.get(id)!).find((g) => g.tags.includes('team-game') && g.screen.phase === 'break');
+    const yoursOnBreak = prevSlots
+      .map((id) => byId.get(id)!)
+      .find((g) => g.tags.includes('team-game') && g.screen.phase === 'break');
     const keptOnBreak = kept && kept.screen.phase === 'break' ? kept : undefined;
     const pending = yoursOnBreak ?? keptOnBreak ?? (prevAudio ? byId.get(prevAudio) : undefined);
     if (pending && pending.info.id !== keep.info.id && pending.screen.phase === 'break') {
@@ -750,13 +800,23 @@ export class Director {
     const from = this.audio;
     this.audio = best.info.id;
     if (t !== undefined)
-      this.log(t, 'tile-swap', { from, to: best.info.id, title: `Audio to ${matchup(best.info)}`, detail: situation(best) + '.' });
+      this.log(t, 'tile-swap', {
+        from,
+        to: best.info.id,
+        title: `Audio to ${matchup(best.info)}`,
+        detail: situation(best) + '.',
+      });
   }
 
   private multiTitle(games: GameInsight[]): string {
     const yours = games.find((g) => g.tags.includes('team-game'));
-    if (yours) return `Your team plus ${games.length - 1 === 1 ? 'a game' : `${games.length - 1} games`} going down to the wire`;
-    return games.length >= 4 ? 'Quad box: crunch time everywhere' : games.length === 3 ? 'Three games in crunch time' : 'Two games down to the wire';
+    if (yours)
+      return `Your team plus ${games.length - 1 === 1 ? 'a game' : `${games.length - 1} games`} going down to the wire`;
+    return games.length >= 4
+      ? 'Quad box: crunch time everywhere'
+      : games.length === 3
+        ? 'Three games in crunch time'
+        : 'Two games down to the wire';
   }
 
   private layoutName(): string {

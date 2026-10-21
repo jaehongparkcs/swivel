@@ -6,6 +6,9 @@ import type { Sport } from './sport';
 
 export const SPORTS: Record<SportId, Sport> = { nba: NBA, nfl: NFL, mlb: MLB };
 
+/** Every sport, in display order. */
+export const SPORT_IDS = Object.keys(SPORTS) as SportId[];
+
 export function sportOf(info: Pick<GameInfo, 'sport'>): Sport {
   return SPORTS[info.sport ?? 'nba'];
 }

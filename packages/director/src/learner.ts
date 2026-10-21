@@ -146,7 +146,10 @@ export class TasteLearner {
       const key = `like:${c}`;
       if (this.announced.has(key)) continue;
       this.announced.add(key);
-      out.push({ title: `Learned: you like ${c}`, detail: `You keep picking their games, so they'll get priority. Change it in Your teams.` });
+      out.push({
+        title: `Learned: you like ${c}`,
+        detail: `You keep picking their games, so they'll get priority. Change it in Your teams.`,
+      });
     }
     for (const c of this.learnedDislikes()) {
       const key = `skip:${c}`;
@@ -156,11 +159,17 @@ export class TasteLearner {
     }
     if (this.drama >= 0.74 && !this.announced.has('drama:high')) {
       this.announced.add('drama:high');
-      out.push({ title: 'Learned: you chase close games', detail: 'Tight finishes will weigh more when picking what to show.' });
+      out.push({
+        title: 'Learned: you chase close games',
+        detail: 'Tight finishes will weigh more when picking what to show.',
+      });
     }
     if (this.drama <= 0.26 && !this.announced.has('drama:low')) {
       this.announced.add('drama:low');
-      out.push({ title: 'Learned: you stick with your teams', detail: "We'll pull you away for other games less often." });
+      out.push({
+        title: 'Learned: you stick with your teams',
+        detail: "We'll pull you away for other games less often.",
+      });
     }
     return out;
   }

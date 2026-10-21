@@ -1,11 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "./dist"
+    "noEmit": true,
+    /* No React Native of its own: type against the Vega app's (the production target). */
+    "baseUrl": ".",
+    "paths": {
+      "react": ["../../apps/vega/node_modules/@types/react"],
+      "react-native": ["../../apps/vega/node_modules/react-native"],
+      "@swivel/director": ["../director/src"]
+    },
+    "types": []
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
+  "exclude": ["node_modules"]
 }

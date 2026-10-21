@@ -1,6 +1,15 @@
 {
-    "extends": "@tsconfig/react-native/tsconfig.json",
-    "compilerOptions": {
-        "types": ["jest", "@amazon-devices/react-native-kepler"], /* Override "jest", "react-native" from @tsconfig/react-native */
-    },
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    /* Override "jest", "react-native" from @tsconfig/react-native */
+    "types": ["jest", "@amazon-devices/react-native-kepler"],
+    /* Workspace packages compile against this app's React Native, not their own (they have none). */
+    "baseUrl": ".",
+    "paths": {
+      "react": ["node_modules/@types/react"],
+      "react-native": ["node_modules/react-native"],
+      "@multi-tv/shared-ui": ["../../packages/shared-ui/src"],
+      "@swivel/director": ["../../packages/director/src"]
+    }
+  }
 }

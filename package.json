@@ -1,5 +1,5 @@
 {
-  "name": "react-native-multi-tv-app-sample",
+  "name": "swivel",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -20,19 +20,25 @@
     "dev:ios": "yarn workspace @multi-tv/expo-multi-tv ios",
     "dev:web": "yarn workspace @multi-tv/expo-multi-tv web",
     "dev:vega": "yarn workspace @multi-tv/vega start",
-    "build:all": "yarn workspaces foreach -A -pt run build",
     "build:vega": "yarn workspace @multi-tv/vega run build",
     "build:vega:debug": "yarn workspace @multi-tv/vega run build:debug",
-    "test:all": "yarn workspaces foreach -A -pt run test",
-    "lint:all": "yarn workspaces foreach -A -pt run lint",
-    "typecheck": "yarn workspaces foreach -A -pt run typecheck",
-    "clean:all": "yarn workspaces foreach -A run clean && rm -rf node_modules",
-    "bootstrap": "yarn install && yarn build:all",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "yarn workspace @swivel/director test && yarn workspace @multi-tv/vega test && yarn workspace @multi-tv/expo-multi-tv test",
+    "typecheck": "yarn workspace @swivel/director typecheck && yarn workspace @multi-tv/shared-ui typecheck",
+    "lint": "eslint packages apps/vega/src apps/vega/test",
+    "format": "prettier --write \"packages/**/*.{ts,tsx}\" \"apps/vega/{src,test}/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx}\" \"apps/vega/{src,test}/**/*.{ts,tsx}\"",
+    "check": "yarn typecheck && yarn lint && yarn format:check && yarn test",
+    "clean": "yarn workspaces foreach -A run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
+    "eslint": "^9.13.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.37.1",
     "husky": "^9.1.6",
     "prettier": "^3.3.3"
-  }
+  },
+  "description": "Autopilot for a night of live sports on Fire TV (Vega OS): break-aware, multiview, learns your teams."
 }

@@ -68,20 +68,40 @@ On web: arrow keys, Enter, Space (Play/Pause), `]` (Fast-forward), `[` (Rewind),
 ## How it works
 
 ```
-packages/director      pure TypeScript engine, no platform deps (unit tested)
-  gameState.ts         play-by-play reducer; feed view vs. on-screen view per channel delay
-  sports/              per-sport rules: win probability, leverage, breaks, labels (basketball, football, baseball)
-  winprob.ts           basketball win probability + leverage index
-  breakModel.ts        stoppage durations, break hazard (media-timeout windows, runs, late game)
-  director.ts          the policy: break hops, anchor/return, upgrades, must-see, split/quad, audio
-  lineup.ts            LineupSource / PlaybackController interfaces (EPG + data feed adapters)
-  sim/                 deterministic simulators for three fictional leagues (possessions, plays, plate appearances)
-packages/shared-ui/src/swivel   the 10-foot UI (stage, tiles, game rail, caption, teams)
-apps/vega              Vega OS app shell
-apps/expo-multi-tv     web / Android TV shell (used for fast iteration)
+packages/director                pure TypeScript engine, no platform deps (29 unit tests)
+  src/gameState.ts               play-by-play reducer; feed view vs. on-screen view per channel delay
+  src/sports/                    one file per sport: win probability, leverage, breaks, labels, recap wording
+  src/director.ts                the policy: break hops, anchor/return, upgrades, must-see, split/quad, audio
+  src/learner.ts, recap.ts       on-device taste learning; "what you missed"
+  src/lineup.ts                  LineupSource / PlaybackController: where games come from, what gets tuned
+  src/sim/                       deterministic simulators and fictional leagues (basketball, football, baseball)
+  scripts/                       headless replays, demo search, seamlessness metrics
+packages/shared-ui/src
+  swivel/SwivelApp.tsx           splash → set up tonight → watch
+  swivel/screens/                Splash, Setup, Watch, Your teams
+  swivel/watch/                  stage, broadcast tile, game rail, caption, status bar
+  swivel/watch/venues/           court, football field, ballpark (one per sport)
+  swivel/state/                  director hook, lineup, demo config, platform (URL options, storage)
+  remote-control/                remote input per platform (Vega, Android TV, tvOS, web)
+apps/vega                        Vega OS app (production target) + smoke tests
+apps/expo-multi-tv               web / Android TV shell (fast iteration)
 ```
 
 **On a real device**, `LineupSource` is built from the Vega **EPG Provider** (which channels in your lineup carry tonight's games) plus a licensed sports data feed. `PlaybackController` maps the primary slot to **Vega Channel Tuning**, with additional players for multiview tiles. The demo replays a simulated slate so it carries no league footage or data rights. Teams are fictional, and video tiles are a rendered "broadcast" driven by the feed.
+
+## Production readiness
+
+**In place**
+- **Checks:** `yarn check` runs the typecheck (engine and UI, against Vega's React Native types), ESLint, Prettier and every test suite: 29 engine tests, Vega smoke tests (splash → setup → watch through the remote) and the Android remote tests. CI runs it on every push and pull request (`.github/workflows/ci.yml`).
+- **Deterministic engine:** the same feed always gives the same decisions, so any session reproduces from its night, favorites and start time. Headless scripts replay whole nights and measure seamlessness.
+- **Extensible by design:** sports, venues and rail glyphs are typed registries (`Record<SportId, …>`), so adding a sport is one file per layer and the compiler lists anything missing (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+- **Platform-safe:** browser-only APIs live in `state/platform.ts`, so native builds never touch `window`. Remote input sits behind one interface per platform.
+
+**Before shipping on real TV** (needs device APIs or partners, not more code here)
+- **Real lineup:** a `LineupSource` from the Vega EPG Provider plus a licensed play-by-play feed, and a `PlaybackController` on Vega Channel Tuning. Both interfaces exist; the demo uses the replay implementation (`state/lineup.ts`).
+- **Channel delay calibration:** see Known limits.
+- **Persistent taste on Vega:** `keyValueStore` in `state/platform.ts` is the one place to plug in Vega's key-value storage (in memory today; localStorage on web).
+- **Dependency trim:** the Vega and Expo apps still declare native modules the original template used (navigation, video). They're unused by Swivel's code but should be removed with a device build to confirm.
 
 ## Run it
 
@@ -98,7 +118,10 @@ vega run-app apps/vega/build/aarch64-release/*_aarch64.vpkg -d VirtualDevice   #
 # Web (fast iteration)
 yarn dev:web            # http://localhost:8082/?seed=74&speed=8
 
-# Engine tests and tools
+# Everything CI runs: typecheck, lint, format check, all tests
+yarn check
+
+# Engine tools
 cd packages/director
 npx tsx --test test/*.test.ts
 npx tsx scripts/runHeadless.ts 51 TPA    # print every decision over a full night

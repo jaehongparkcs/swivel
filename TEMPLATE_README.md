@@ -1,3 +1,5 @@
+> **Archived for attribution.** Swivel started from Amazon's [react-native-multi-tv-app-sample](https://github.com/AmazonAppDev/react-native-multi-tv-app-sample) (MIT-0). This is that project's original README; the template screens it describes have since been removed from this repo. See [README.md](README.md) for Swivel.
+
 # React Native Multi-TV App Sample
 
 [![React Native](https://img.shields.io/badge/React%20Native-v0.81-blue.svg)](https://reactnative.dev/)
@@ -5,7 +7,7 @@
 
 A production-ready TV application template built with React Native, supporting Android TV, Apple TV, Fire TV (with Fire OS), Fire TV (with Vega OS) and Web TV platforms. This monorepo showcases best practices for building cross-platform TV applications with shared UI components, efficient focus management, and platform-specific optimizations.
 
-![Demo GIF](./tvdemo.gif)
+Demo GIF: see the [original repository](https://github.com/AmazonAppDev/react-native-multi-tv-app-sample).
 
 ## Table of Contents
 

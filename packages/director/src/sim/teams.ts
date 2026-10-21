@@ -66,3 +66,12 @@ export const MLB_TEAMS: Team[] = [
 export const TEAMS_BY_SPORT: Record<SportId, Team[]> = { nba: TEAMS, nfl: NFL_TEAMS, mlb: MLB_TEAMS };
 export const ALL_TEAMS: Team[] = [...TEAMS, ...NFL_TEAMS, ...MLB_TEAMS];
 export const TEAM_BY_CODE: Record<string, Team> = Object.fromEntries(ALL_TEAMS.map((t) => [t.code, t]));
+
+const SPORT_BY_CODE: Record<string, SportId> = Object.fromEntries(
+  (Object.keys(TEAMS_BY_SPORT) as SportId[]).flatMap((sport) => TEAMS_BY_SPORT[sport].map((t) => [t.code, sport])),
+);
+
+/** Which league a team plays in (team codes are unique across leagues). */
+export function sportOfTeam(code: string): SportId | undefined {
+  return SPORT_BY_CODE[code];
+}

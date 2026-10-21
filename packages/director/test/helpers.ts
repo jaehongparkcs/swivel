@@ -14,7 +14,15 @@ export function game(id: string, i: number, delayMs = 0): GameInfo {
 /** Tiny scripted feed builder: ev(gameId)(t seconds, type, period, clock, home, away). */
 export function feed(gameId: string) {
   let seq = 0;
-  return (tSec: number, type: FeedEventType, period: number, clock: number, home: number, away: number, extra: Partial<FeedEvent> = {}): FeedEvent => ({
+  return (
+    tSec: number,
+    type: FeedEventType,
+    period: number,
+    clock: number,
+    home: number,
+    away: number,
+    extra: Partial<FeedEvent> = {},
+  ): FeedEvent => ({
     gameId,
     seq: seq++,
     t: tSec * 1000,

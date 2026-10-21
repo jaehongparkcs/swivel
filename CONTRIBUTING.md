@@ -1,59 +1,38 @@
-# Contributing Guidelines
+# Contributing to Swivel
 
-Thank you for your interest in contributing to our project. Whether it's a bug report, new feature, correction, or additional
-documentation, we greatly value feedback and contributions from our community.
+## Setup
 
-Please read through this document before submitting any issues or pull requests to ensure we have all the necessary
-information to effectively respond to your bug report or contribution.
+```bash
+corepack enable
+yarn install
+yarn check          # typecheck, lint, format check and all tests (what CI runs)
+```
 
+Node 22 and Yarn 4 (via corepack). For the Vega app you also need the Vega SDK; see the README's "Run it".
 
-## Reporting Bugs/Feature Requests
+## Where things live
 
-We welcome you to use the GitHub issue tracker to report bugs or suggest features.
+| Path | What |
+| --- | --- |
+| `packages/director` | The engine: pure TypeScript, no platform dependencies. Feed reducer, per-sport rules (`src/sports/`), the director policy, learning, recaps, simulators. |
+| `packages/shared-ui/src/swivel` | The TV app: `SwivelApp` (splash → setup → watch), `screens/`, `watch/` (stage, tiles, rail, caption), `watch/venues/` (court, field, ballpark), `state/` (director hook, lineup, demo config, platform access). |
+| `packages/shared-ui/src/remote-control` | Remote input per platform (Vega, Android TV, tvOS, web), all on one `KeyEmitter`. |
+| `apps/vega` | The Vega OS shell (production target). |
+| `apps/expo-multi-tv` | Web / Android TV shell, used for fast iteration. |
 
-When filing an issue, please check existing open, or recently closed, issues to make sure somebody else hasn't already
-reported the issue. Please try to include as much information as you can. Details like these are incredibly useful:
+## Adding a sport
 
-* A reproducible test case or series of steps
-* The version of our code being used
-* Any modifications you've made relevant to the bug
-* Anything unusual about your environment or deployment
+1. `packages/director/src/sports/<sport>.ts`: implement `Sport` (win probability, leverage, breaks, labels, recap scale) and register it in `sports/index.ts`.
+2. `packages/director/src/sim/`: a simulator and a fictional league in `teams.ts` (team codes must be unique across leagues).
+3. `packages/shared-ui/src/swivel/watch/venues/`: a venue drawing, registered in `VENUES`, and a glyph in `watch/SportGlyph.tsx`. Both are `Record<SportId, …>`, so TypeScript points at anything missing.
+4. Tests in `packages/director/test/sports.test.ts`.
 
+## Conventions
 
-## Contributing via Pull Requests
-Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
+- Prettier (`yarn format`) and ESLint (`yarn lint`); commits follow [Conventional Commits](https://www.conventionalcommits.org/) (enforced by commitlint).
+- Behavior changes to the director come with a test, and a before/after from `yarn workspace @swivel/director seamless` when they affect switching.
+- Demo nights are deterministic: `scripts/demoTimeline.ts` prints exactly what a launch will show. Keep `docs/DEMO_SCRIPT.md` in sync when the default night changes.
 
-1. You are working against the latest source on the *main* branch.
-2. You check existing open, and recently merged, pull requests to make sure someone else hasn't addressed the problem already.
-3. You open an issue to discuss any significant work - we would hate for your time to be wasted.
+## Reporting issues
 
-To send us a pull request, please:
-
-1. Fork the repository.
-2. Modify the source; please focus on the specific change you are contributing. If you also reformat all the code, it will be hard for us to focus on your change.
-3. Ensure local tests pass.
-4. Commit to your fork using clear commit messages.
-5. Send us a pull request, answering any default questions in the pull request interface.
-6. Pay attention to any automated CI failures reported in the pull request, and stay involved in the conversation.
-
-GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
-[creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
-
-
-## Finding contributions to work on
-Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any 'help wanted' issues is a great place to start.
-
-
-## Code of Conduct
-This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct).
-For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq) or contact
-opensource-codeofconduct@amazon.com with any additional questions or comments.
-
-
-## Security issue notifications
-If you discover a potential security issue in this project we ask that you notify AWS/Amazon Security via our [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public github issue.
-
-
-## Licensing
-
-See the [LICENSE](LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
+Open a GitHub issue with steps to reproduce (the night `seed`, favorite teams and start time reproduce any session exactly).

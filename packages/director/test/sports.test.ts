@@ -18,7 +18,10 @@ test('football: late and close beats early, the ball and field position matter',
   const blowout = NFL.leverage(snap({ period: 4, homeScore: 38, awayScore: 10 }), 300);
   assert.ok(early > 0.9 && early < 1.1, `opening kickoff ~1 (${early})`);
   assert.ok(late > 3, `3-pt game, 1:30 left, trailer driving is crunch time (${late})`);
-  const oneScore = NFL.leverage(snap({ period: 4, homeScore: 27, awayScore: 20, possession: 'away', fieldPos: 50 }), 120);
+  const oneScore = NFL.leverage(
+    snap({ period: 4, homeScore: 27, awayScore: 20, possession: 'away', fieldPos: 50 }),
+    120,
+  );
   assert.ok(oneScore > 1.6, `one-score game at the two-minute warning is close (${oneScore})`);
   assert.ok(blowout < 0.15);
   const down4 = { period: 4, homeScore: 17, awayScore: 20 } as const;
@@ -32,7 +35,10 @@ test('baseball: outs and runners drive win probability; labels read like a broad
   const loaded = MLB.homeWinProb(snap({ ...tiedBot9, outs: 0, bases: 7 }), 0);
   const empty2 = MLB.homeWinProb(snap({ ...tiedBot9, outs: 2, bases: 0 }), 0);
   assert.ok(loaded > 0.8 && empty2 < loaded, `${loaded} vs ${empty2}`);
-  assert.ok(MLB.leverage(snap({ period: 18, homeScore: 2, awayScore: 3, outs: 1, bases: 3 }), 0) > 3, 'down one in the bottom of the 9th with runners on is crunch time');
+  assert.ok(
+    MLB.leverage(snap({ period: 18, homeScore: 2, awayScore: 3, outs: 1, bases: 3 }), 0) > 3,
+    'down one in the bottom of the 9th with runners on is crunch time',
+  );
   assert.ok(MLB.leverage(snap({ period: 2, homeScore: 0, awayScore: 0, outs: 0, bases: 0 }), 0) < 1.5);
   assert.equal(MLB.periodLabel(15), 'Top 8th');
   assert.equal(MLB.periodLabel(15, snap({ phase: 'break', breakKind: 'inning', period: 15 })), 'Mid 8th');
@@ -46,7 +52,10 @@ test('mixed nights: every sport plays, basketball-only nights are unchanged', ()
   assert.ok(plain.games.every((g) => g.sport === undefined));
 
   const mixed = buildSlate(5, 8, { sports: ['nba', 'nfl', 'mlb'] });
-  assert.deepEqual(mixed.games.map((g) => g.sport), ['nba', 'nfl', 'mlb', 'nba', 'nfl', 'mlb', 'nba', 'nfl']);
+  assert.deepEqual(
+    mixed.games.map((g) => g.sport),
+    ['nba', 'nfl', 'mlb', 'nba', 'nfl', 'mlb', 'nba', 'nfl'],
+  );
   assert.deepEqual(buildSlate(5, 8, { sports: ['nba', 'nfl', 'mlb'] }), mixed, 'deterministic');
   for (const g of mixed.games) {
     const evs = mixed.events.filter((e) => e.gameId === g.id);
@@ -56,7 +65,7 @@ test('mixed nights: every sport plays, basketball-only nights are unchanged', ()
   assert.equal(new Set(codes).size, codes.length, 'no team plays twice');
 });
 
-test('mixed nights: the director hops on each sport\'s own breaks and labels them', () => {
+test("mixed nights: the director hops on each sport's own breaks and labels them", () => {
   const slate = buildSlate(45, 8, { sports: ['nba', 'nfl', 'mlb'] });
   const src = new ReplayLineupSource(slate);
   const d = new Director(src.games(), { favorites: ['MEM'], likes: [], loyalty: 'team-first', multiview: true });
@@ -85,11 +94,27 @@ test('recaps speak each sport: runs in baseball, unanswered points in football',
     sport,
   });
   const ev = (seq: number, team: 'home' | 'away', points: number, home: number, away: number): FeedEvent => ({
-    gameId: 'g', seq, t: seq * 60_000, type: 'score', period: 1, clock: 0, clockRunning: false, homeScore: home, awayScore: away, team, points, text: 'score',
+    gameId: 'g',
+    seq,
+    t: seq * 60_000,
+    type: 'score',
+    period: 1,
+    clock: 0,
+    clockRunning: false,
+    homeScore: home,
+    awayScore: away,
+    team,
+    points,
+    text: 'score',
   });
   const mlb = buildRecap(info('mlb'), [ev(1, 'away', 1, 2, 1), ev(2, 'away', 2, 2, 3)], 600_000, false);
   assert.match(mlb!.text, /run/);
-  const nfl = buildRecap(info('nfl'), [ev(1, 'away', 7, 10, 7), ev(2, 'away', 7, 10, 14), ev(3, 'away', 3, 10, 17)], 900_000, false);
+  const nfl = buildRecap(
+    info('nfl'),
+    [ev(1, 'away', 7, 10, 7), ev(2, 'away', 7, 10, 14), ev(3, 'away', 3, 10, 17)],
+    900_000,
+    false,
+  );
   assert.match(nfl!.text, /point/);
   assert.doesNotMatch(nfl!.text, /–0 run/);
 });

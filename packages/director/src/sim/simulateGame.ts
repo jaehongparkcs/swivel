@@ -156,7 +156,12 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
         const three = rng() < 0.45;
         if (rng() < (three ? 0.3 : 0.42)) {
           addPoints(poss, three ? 3 : 2);
-          emit('score', `${code(poss)} ${three ? 'buzzer-beating three' : 'shot at the horn'}!`, { team: poss, points: three ? 3 : 2 }, false);
+          emit(
+            'score',
+            `${code(poss)} ${three ? 'buzzer-beating three' : 'shot at the horn'}!`,
+            { team: poss, points: three ? 3 : 2 },
+            false,
+          );
         } else emit('miss', `${code(poss)} miss at the buzzer`, { team: poss }, false);
       }
       emit('period_end', `End of ${period <= 4 ? `Q${period}` : `OT${period - 4}`}`, {}, false);
@@ -178,7 +183,10 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
     // Outcome probabilities with team strength and late-game rubber band.
     const edge = (poss === 'home' ? homeEdge : -homeEdge) / 100;
     const lateness = period >= 3 ? Math.min(1, (period - 2) / 2) : 0;
-    const band = margin < 0 ? Math.min(0.06, (-margin / 100) * rubber * 2 * lateness) : -Math.min(0.04, (margin / 100) * rubber * lateness);
+    const band =
+      margin < 0
+        ? Math.min(0.06, (-margin / 100) * rubber * 2 * lateness)
+        : -Math.min(0.04, (margin / 100) * rubber * lateness);
     const p2 = 0.315 + edge * 0.6 + band;
     const p3 = 0.115 + edge * 0.3 + band * 0.5 + (late && margin < -2 ? 0.08 : 0);
     const outcome = weighted(rng, [
@@ -198,7 +206,12 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
         const pts = outcome === 'make3' ? 3 : 2;
         addPoints(shooter, pts);
         const stops = lateClockStops();
-        emit('score', `${code(shooter)} ${pick(rng, pts === 3 ? SHOTS3 : SHOTS2)}`, { team: shooter, points: pts }, !stops);
+        emit(
+          'score',
+          `${code(shooter)} ${pick(rng, pts === 3 ? SHOTS3 : SHOTS2)}`,
+          { team: shooter, points: pts },
+          !stops,
+        );
         if (stops) t += wall('deadBall');
         dead = true; // inbound after a make is a dead ball (timeouts allowed)
         deadAgainst = other(shooter);
@@ -208,13 +221,23 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
       case 'miss': {
         emit('miss', `${code(shooter)} misses ${pick(rng, rng() < 0.4 ? SHOTS3 : SHOTS2)}`, { team: shooter }, true);
         const oreb = rng() < 0.25;
-        emit('rebound', `${code(oreb ? shooter : other(shooter))} rebound`, { team: oreb ? shooter : other(shooter) }, true);
+        emit(
+          'rebound',
+          `${code(oreb ? shooter : other(shooter))} rebound`,
+          { team: oreb ? shooter : other(shooter) },
+          true,
+        );
         if (!oreb) poss = other(shooter);
         break;
       }
       case 'turnover': {
         const outOfBounds = rng() < 0.5;
-        emit('turnover', `${code(shooter)} turnover${outOfBounds ? ' (out of bounds)' : ' (steal)'}`, { team: shooter }, !outOfBounds);
+        emit(
+          'turnover',
+          `${code(shooter)} turnover${outOfBounds ? ' (out of bounds)' : ' (steal)'}`,
+          { team: shooter },
+          !outOfBounds,
+        );
         if (outOfBounds) {
           t += wall('deadBall');
           dead = true;
@@ -235,7 +258,12 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
             addPoints(fouled, 1);
           }
           t += wall('freeThrow');
-          emit('freethrow', `${code(fouled)} free throw ${i + 1} of 2 ${make ? 'good' : 'missed'}`, make ? { team: fouled, points: 1 } : { team: fouled }, i === 1);
+          emit(
+            'freethrow',
+            `${code(fouled)} free throw ${i + 1} of 2 ${make ? 'good' : 'missed'}`,
+            make ? { team: fouled, points: 1 } : { team: fouled },
+            i === 1,
+          );
         }
         dead = true;
         deadAgainst = made > 0 ? other(fouled) : undefined;

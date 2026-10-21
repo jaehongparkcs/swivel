@@ -162,7 +162,8 @@ export function simulateMlb(info: GameInfo, opts: SimOptions): FeedEvent[] {
         break;
       case 'homer':
         runs = advance(4, true);
-        text = runs >= 4 ? `${code(side)} grand slam!` : `${code(side)} ${runs > 1 ? `${runs}-run homer` : 'solo homer'}`;
+        text =
+          runs >= 4 ? `${code(side)} grand slam!` : `${code(side)} ${runs > 1 ? `${runs}-run homer` : 'solo homer'}`;
         break;
     }
     if (outs >= 3) {
@@ -171,7 +172,10 @@ export function simulateMlb(info: GameInfo, opts: SimOptions): FeedEvent[] {
     }
     if (runs > 0) {
       score[side] += runs;
-      emit('score', `${text}${runs > 1 && outcome !== 'homer' ? `, ${runs} runs score` : ''}`, { team: side, points: runs });
+      emit('score', `${text}${runs > 1 && outcome !== 'homer' ? `, ${runs} runs score` : ''}`, {
+        team: side,
+        points: runs,
+      });
     } else emit('play', text);
 
     // Walk-off.
@@ -184,7 +188,10 @@ export function simulateMlb(info: GameInfo, opts: SimOptions): FeedEvent[] {
       emit('period_end', `End of the ${halfName().toLowerCase()}`);
       const endOfTop = half % 2 === 1;
       if (inning() >= 9 && ((endOfTop && score.home > score.away) || (!endOfTop && score.home !== score.away))) {
-        emit('game_end', `Final${inning() > 9 ? ` (${inning()})` : ''}: ${info.away.code} ${score.away}, ${info.home.code} ${score.home}`);
+        emit(
+          'game_end',
+          `Final${inning() > 9 ? ` (${inning()})` : ''}: ${info.away.code} ${score.away}, ${info.home.code} ${score.home}`,
+        );
         return events;
       }
       t += wall('inning');

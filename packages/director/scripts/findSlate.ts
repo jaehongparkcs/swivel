@@ -7,7 +7,15 @@ import { Director, buildSlate, ReplayLineupSource } from '../src';
 
 const from = Number(process.argv[2] ?? 1);
 const to = Number(process.argv[3] ?? 200);
-const rows: Array<{ seed: number; score: number; quad: number; split: number; ot: number; avgPts: number; switches: number }> = [];
+const rows: Array<{
+  seed: number;
+  score: number;
+  quad: number;
+  split: number;
+  ot: number;
+  avgPts: number;
+  switches: number;
+}> = [];
 
 for (let seed = from; seed <= to; seed++) {
   const slate = buildSlate(seed);
@@ -33,4 +41,13 @@ for (let seed = from; seed <= to; seed++) {
 rows.sort((a, b) => b.score - a.score);
 console.table(rows.slice(0, 12));
 const avg = rows.reduce((s, r) => s + r.avgPts, 0) / rows.length;
-console.log('mean points per team', avg.toFixed(1), '| slates with split', rows.filter((r) => r.split > 0).length, '/', rows.length, '| with quad', rows.filter((r) => r.quad > 0).length);
+console.log(
+  'mean points per team',
+  avg.toFixed(1),
+  '| slates with split',
+  rows.filter((r) => r.split > 0).length,
+  '/',
+  rows.length,
+  '| with quad',
+  rows.filter((r) => r.quad > 0).length,
+);

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 
 import React from 'react';
-import { SwivelApp } from '@multi-tv/shared-ui';
+import {SwivelApp} from '@multi-tv/shared-ui';
 
 export const App = () => {
   return <SwivelApp />;

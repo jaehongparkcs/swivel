@@ -12,7 +12,9 @@
     "headless": "tsx scripts/runHeadless.ts",
     "demo-timeline": "tsx scripts/demoTimeline.ts",
     "find-slate": "tsx scripts/findSlate.ts",
-    "find-demo": "tsx scripts/findDemo.ts"
+    "find-demo": "tsx scripts/findDemo.ts",
+    "find-mixed-demo": "tsx scripts/findMixedDemo.ts",
+    "seamless": "tsx scripts/seamless.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -92,7 +92,10 @@ export function reduce(s: GameSnapshot, e: FeedEvent, sport: Sport = NBA): GameS
   }
 
   next.mandatoryArmed =
-    sport.mediaWindows && next.phase === 'live' && next.period <= 4 && satisfiedWindows(next.clock) > next.mandatoryDone;
+    sport.mediaWindows &&
+    next.phase === 'live' &&
+    next.period <= 4 &&
+    satisfiedWindows(next.clock) > next.mandatoryDone;
   return next;
 }
 
