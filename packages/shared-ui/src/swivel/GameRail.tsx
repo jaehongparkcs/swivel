@@ -21,7 +21,8 @@ function statusOf(g: GameInsight, t: number): { text: string; color: string } {
   }
   if (s.phase === 'break') {
     const kind = s.breakKind ?? 'timeout';
-    if (g.resumeIncomingInMs !== undefined) return { text: `Back in ${durationLabel(g.resumeIncomingInMs)}`, color: fb.amber };
+    if (g.resumeIncomingInMs !== undefined)
+      return { text: g.resumeIncomingInMs < 1500 ? 'Back now' : `Back in ${durationLabel(g.resumeIncomingInMs)}`, color: fb.amber };
     const short = kind === 'inning' ? gameClock(g)[0] : kind === 'mandatory' && g.info.sport === 'nfl' ? 'TV timeout' : SHORT_BREAKS[kind];
     const el = g.breakElapsedMs;
     return { text: kind === 'halftime' || el === undefined ? short : `${short} ${durationLabel(el)}`, color: fb.buzzer };

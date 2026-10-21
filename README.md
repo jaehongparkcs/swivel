@@ -6,7 +6,11 @@ NBA CrunchTime and NFL RedZone are one channel for everyone. Swivel is personal:
 
 Built for the Amazon Developer Hackathon (Fire TV track) on **Vega OS** with React Native. The same code also runs in a browser for quick iteration.
 
-![screens](docs/quad.png)
+![Three-up: your team on the big tile, two other crunch-time games beside it](docs/three-up.png)
+
+| Your team, full screen | Split: your team plus a close finish |
+|---|---|
+| ![single](docs/single.png) | ![split](docs/split.png) |
 
 ## What it does
 
