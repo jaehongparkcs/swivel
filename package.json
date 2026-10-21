@@ -38,7 +38,8 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.1",
     "husky": "^9.1.6",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "typescript": "~5.7.0"
   },
   "description": "Autopilot for a night of live sports on Fire TV (Vega OS): break-aware, multiview, learns your teams."
 }

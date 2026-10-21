@@ -27,3 +27,6 @@ yarn-error.log
 
 # Vega build output (absolute local paths)
 apps/vega/buildinfo.json
+
+# Yarn per-machine install state
+.yarn/install-state.gz

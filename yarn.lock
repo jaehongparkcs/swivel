@@ -19470,6 +19470,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.1"
     husky: "npm:^9.1.6"
     prettier: "npm:^3.3.3"
+    typescript: "npm:~5.7.0"
   languageName: unknown
   linkType: soft
 
