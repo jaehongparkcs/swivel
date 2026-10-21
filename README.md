@@ -31,7 +31,7 @@ Hops, multiview, learning and recaps are shared; each sport plugs in its own rul
 | Win probability | margin + time | margin + time + the drive in progress (expected points from field position) | margin + innings left + the base-out state (RE24 run expectancy) |
 | Crunch time | 4th quarter / OT, high leverage | 4th quarter / OT, high leverage | 8th inning on, high leverage (a one-run 9th) |
 
-Football's "double-dip" (score, commercial, kickoff, commercial) is handled: Swivel waits out the second break instead of returning for 25 seconds of kickoff. A mixed night is opt-in: set `DEFAULT_DEMO = MIXED_DEMO` in `demoConfig.ts` (or `?mixed=1` on web). The rail marks each game's sport, the tile draws a court, a field (ball at the line of scrimmage) or a diamond (occupied bases lit), and the Your teams screen lists tonight's teams.
+Football's "double-dip" (score, commercial, kickoff, commercial) is handled: Swivel waits out the second break instead of returning for 25 seconds of kickoff. The demo night mixes all three. The rail marks each game's sport, the tile draws a court, a field (ball at the line of scrimmage) or a diamond (occupied bases lit), and the Your teams screen lists tonight's teams.
 
 ### Why not computer vision for break detection?
 
@@ -96,10 +96,11 @@ npx tsx scripts/runHeadless.ts 51 TPA    # print every decision over a full nigh
 npx tsx scripts/findSlate.ts 1 200       # search for demo-worthy nights
 npx tsx scripts/findDemo.ts 1 150        # search nights x favorite teams for the best demo
 npx tsx scripts/seamless.ts 40           # count flashes and short-lived screens over 40 nights
-SPORTS=nba,nfl,mlb npx tsx scripts/runHeadless.ts 45 MEM   # any script, on a mixed night
+SPORTS=nba,nfl,mlb npx tsx scripts/runHeadless.ts 65 DAL   # any script, on a mixed night
+npx tsx scripts/findMixedDemo.ts 1 80   # search mixed nights for the best 3-sport demo window
 ```
 
-Demo knobs are in `packages/shared-ui/src/swivel/demoConfig.ts`. The default is night `51` with Tampa as your team at 8x replay: a hop and return, split to three-up, your team's tile holding through a timeout, and Tampa going to overtime. `scripts/findDemo.ts` found it. On web, override with `?seed=&fav=TPA&speed=&start=<seconds>&lag=<min>-<max>` (resume-report lag in seconds), `&sports=nba,nfl,mlb`, or `?mixed=1` for the mixed demo night (45, Memphis football as your team: extra-inning baseball, a tied 4th quarter and your team joining a three-up).
+Demo knobs are in `packages/shared-ui/src/swivel/demoConfig.ts`. The default is night `65` with basketball, football and baseball, Dallas football as your team, at 8x replay: it opens on baseball, hops to basketball on an inning break, returns to your team, then splits football + baseball and goes three-up with all three sports; a basketball game goes to overtime and Dallas closes out a 4-point 4th quarter. `scripts/findMixedDemo.ts` found it. `BASKETBALL_DEMO` is the basketball-only night (51, Tampa). On web, override with `?seed=&fav=&speed=&start=<seconds>&lag=<min>-<max>&sports=nba,nfl,mlb`, or `?basketball=1`.
 
 ## License
 

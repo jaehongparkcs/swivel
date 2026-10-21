@@ -449,7 +449,7 @@ export class Director {
     if (P.screen.phase === 'final') {
       const alt = bestExcept(this.slots);
       if (alt) {
-        this.switchPrimary(t, alt, 'final-hop', `${matchup(P.info)} is final`, `Moving to ${matchup(alt.info)} · ${situation(alt)}.`);
+        this.switchPrimary(t, alt, 'final-hop', finalLine(P), `Moving to ${matchup(alt.info)} · ${situation(alt)}.`);
       }
       return;
     }
@@ -673,9 +673,14 @@ export class Director {
       const keepId = this.collapseTarget(byId, ranked, next[0])?.info.id;
       const told = reasons.filter(([g, r]) => !(g.info.id === keepId && r === 'cooled off'));
       const allCommercial = told.length >= 2 && told.every(([, r]) => r === 'went to commercial');
+      const final = told.find(([, r]) => r === 'is final')?.[0];
+      const others = told.filter(([g]) => g !== final);
       const why = allCommercial
         ? `${told.length === 2 ? 'Both' : `All ${told.length}`} games went to commercial`
-        : told.map(([g, r]) => `${matchup(g.info)} ${r}`).join('; ');
+        : final
+          ? // A game ending is the headline; the rest is housekeeping.
+            `${finalLine(final)}${others.length ? `; ${others.length === 1 ? `${matchup(others[0][0].info)} ${others[0][1]}` : 'the others went to commercial'}` : ''}`
+          : told.map(([g, r]) => `${matchup(g.info)} ${r}`).join('; ');
       this.collapseTo(t, byId, ranked, told.length ? capitalize(why) : 'Back to full screen', next[0]);
       return true;
     }
@@ -766,6 +771,14 @@ export class Director {
     this.decisions.push({ t, kind, layout: this.layout, ...d });
     if (this.decisions.length > MAX_DECISIONS) this.decisions.splice(0, this.decisions.length - MAX_DECISIONS);
   }
+}
+
+/** "Final: DAL 10, CHI 6", winner first. */
+function finalLine(g: GameInsight): string {
+  const { home, away } = g.info;
+  const h = g.screen.homeScore;
+  const a = g.screen.awayScore;
+  return h >= a ? `Final: ${home.code} ${h}, ${away.code} ${a}` : `Final: ${away.code} ${a}, ${home.code} ${h}`;
 }
 
 function capitalize(s: string): string {

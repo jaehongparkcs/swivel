@@ -7,7 +7,7 @@ import type { Sport } from './sport';
 /** Basketball: four 12-minute quarters, media timeouts, possessions every ~15 s. */
 export const NBA: Sport = {
   id: 'nba',
-  tag: 'HOOPS',
+  tag: 'BASKETBALL',
   unit: { one: 'point', many: 'points', short: 'pt' },
   startClock: 720,
   homeWinProb: (s, clock) => homeWinProb(s.homeScore - s.awayScore, s.period, clock),

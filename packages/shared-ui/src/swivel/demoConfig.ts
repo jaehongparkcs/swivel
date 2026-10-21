@@ -17,28 +17,31 @@ export interface DemoConfig {
 }
 
 /**
- * Night 51 with Tampa as your team: a media-timeout hop and return, split and
- * three-up crunch time, commercials collapsing the grid, and Tampa going to OT.
+ * Basketball only: night 51 with Tampa as your team (a media-timeout hop and return,
+ * split and three-up crunch time, and Tampa going to OT).
  * Found with packages/director/scripts/findDemo.ts.
  */
 export const BASKETBALL_DEMO: DemoConfig = { seed: 51, speed: 8, startAt: 5_960_000, favorites: ['TPA'] };
 
 /**
- * Night 45 mixed (basketball, football, baseball) with Memphis football as your team:
- * extra-inning baseball, a tied 4th quarter, and your team joining a three-up.
- * Found with SPORTS=nba,nfl,mlb scripts/findDemo.ts.
+ * Night 65, all three sports, with Dallas football as your team. In the first 35 s:
+ * baseball, a hop to basketball on the inning break, "your team is back on", a
+ * football + baseball split, then a three-up with all three sports. Then a
+ * basketball game goes to overtime, Dallas closes out a 4-point 4th quarter, and
+ * overtime sits beside a tied 9th inning.
+ * Found with SPORTS=nba,nfl,mlb scripts/findMixedDemo.ts.
  */
-export const MIXED_DEMO: DemoConfig = { seed: 45, speed: 8, startAt: 9_600_000, favorites: ['MEM'], sports: ['nba', 'nfl', 'mlb'] };
+export const MIXED_DEMO: DemoConfig = { seed: 65, speed: 8, startAt: 9_920_000, favorites: ['DAL'], sports: ['nba', 'nfl', 'mlb'] };
 
-/** Which night the app opens on. Switch to MIXED_DEMO for basketball + football + baseball. */
-export const DEFAULT_DEMO: DemoConfig = BASKETBALL_DEMO;
+/** Which night the app opens on. BASKETBALL_DEMO is the basketball-only night. */
+export const DEFAULT_DEMO: DemoConfig = MIXED_DEMO;
 
-/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds)&sports=nba,nfl,mlb overrides the defaults (?mixed=1 opens MIXED_DEMO). */
+/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds)&sports=nba,nfl,mlb overrides the defaults (?basketball=1 opens the basketball-only night). */
 export function readDemoConfig(): DemoConfig {
   let cfg: DemoConfig = { ...DEFAULT_DEMO };
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
     const q = new URLSearchParams(window.location.search);
-    if (q.get('mixed')) cfg = { ...MIXED_DEMO };
+    if (q.get('basketball')) cfg = { ...BASKETBALL_DEMO };
     if (q.get('sports')) cfg.sports = q.get('sports')!.split(',') as SportId[];
     if (q.get('seed')) cfg.seed = Number(q.get('seed'));
     if (q.get('speed')) cfg.speed = Number(q.get('speed'));

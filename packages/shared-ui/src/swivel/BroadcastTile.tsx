@@ -416,10 +416,10 @@ function BroadcastTile({ g, width, height, audio, focused, compact }: Props) {
         <View style={styles.bugClock}>
           <Text style={[styles.bugPeriod, compact && { fontSize: px(20) }, tiny && { fontSize: px(17), marginRight: px(6) }]}>{period}</Text>
           <Text style={[styles.bugTime, type.digits, compact && { fontSize: px(26) }, tiny && { fontSize: px(21) }]}>{clock}</Text>
-          {!tiny && runners && <Text style={[styles.bugPeriod, { marginLeft: px(12) }, compact && { fontSize: px(18) }]}>{runners}</Text>}
+          {!compact && runners && <Text style={[styles.bugPeriod, { marginLeft: px(12) }, compact && { fontSize: px(18) }]}>{runners}</Text>}
         </View>
         <View style={{ flex: 1 }} />
-        {!tiny && <Text style={[styles.sim, compact && { fontSize: px(14) }]}>{sport.id === 'nba' ? 'Simulated feed' : `${sport.tag} · Simulated feed`}</Text>}
+        {!tiny && <Text style={[styles.sim, compact && { fontSize: px(14) }]}>{`${sport.tag} · Simulated feed`}</Text>}
       </View>
     </View>
   );
