@@ -1,6 +1,6 @@
 # Swivel: remaining work
 
-Deadline: **Fri Oct 23, 2026, 12:00 PM PDT** (Devpost). Priorities: **P0** = needed to submit, **P1** = planned features, **P2** = known issues and polish.
+Deadline: **Fri Oct 23, 2026, 12:00 PM PDT** (Devpost). Submit a complete draft by Thu night; Devpost allows edits until the deadline. Priorities: **P0** = needed to submit, **P1** = planned features, **P2** = known issues and polish.
 
 Status as of Oct 16:
 - **Done:** engine with 20 tests; TV app (single, split, three-up, quad layouts); team-first priority; commercials removed from the grid; resume countdowns taken from the feed; learning from remote presses; "What you missed" recaps; Vega build runs on the simulator; Swivel repo on GitHub.
@@ -27,7 +27,7 @@ The app still says "Fastbreak" in about 90 places across about 30 files.
   - Then run `yarn install` to refresh `yarn.lock`.
 - [x] **Icon:** keep `apps/vega/assets/image/fastbreak_icon.png` (the design fits "Swivel") but rename the file to `swivel_icon.png` and update `manifest.toml`.
 - [x] **Docs:** `README.md`, `packages/director/README.md`, everything in `docs/`. Include the pitch line contrasting Swivel with NBA CrunchTime and NFL RedZone: those are one channel for everyone; Swivel is personal, across your lineup, with no commercials.
-- [ ] **Verify:** 23 tests pass (`cd packages/director && npx tsx --test test/*.test.ts`) ✅; the web build renders "Swivel" ✅; still to do on the Mac: `yarn build:vega` and run-app show "Swivel" (uninstall the old `com.jaepark.fastbreak` first).
+- [ ] **Verify:** 24 tests pass (`cd packages/director && npx tsx --test test/*.test.ts`) ✅; the web build renders "Swivel" ✅; still to do on the Mac: `yarn build:vega` and run-app show "Swivel" (uninstall the old `com.jaepark.fastbreak` first).
 
 ### 2. Demo video (< 3:00)
 - [ ] Rebuild after the rename, launch on the Vega Virtual Device, and record with QuickTime following `docs/DEMO_SCRIPT.md` (timings are from launch at 8x).

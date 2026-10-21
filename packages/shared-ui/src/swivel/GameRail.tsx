@@ -20,7 +20,8 @@ function statusOf(g: GameInsight, t: number): { text: string; color: string } {
   }
   if (s.phase === 'break') {
     const kind = s.breakKind ?? 'timeout';
-    if (g.resumeIncomingInMs !== undefined) return { text: `Back in ${durationLabel(g.resumeIncomingInMs)}`, color: fb.amber };
+    if (g.resumeIncomingInMs !== undefined)
+      return { text: g.resumeIncomingInMs < 1500 ? 'Back now' : `Back in ${durationLabel(g.resumeIncomingInMs)}`, color: fb.amber };
     const short = { timeout: 'Timeout', mandatory: 'Media break', quarter: 'Qtr break', halftime: 'Halftime', overtime: 'To OT', review: 'Review' }[kind];
     const el = g.breakElapsedMs;
     return { text: kind === 'halftime' || el === undefined ? short : `${short} ${durationLabel(el)}`, color: fb.buzzer };
