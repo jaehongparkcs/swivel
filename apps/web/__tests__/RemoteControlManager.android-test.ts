@@ -1,6 +1,6 @@
 import KeyEvent from 'react-native-keyevent';
-import RemoteControlManager from '../../../packages/shared-ui/src/remote-control/RemoteControlManager.android';
-import { SupportedKeys } from '../../../packages/shared-ui/src/remote-control/SupportedKeys';
+import RemoteControlManager from '../../../packages/ui/src/remote-control/RemoteControlManager.android';
+import { SupportedKeys } from '../../../packages/ui/src/remote-control/SupportedKeys';
 
 jest.mock('react-native-keyevent', () => ({
   __esModule: true,

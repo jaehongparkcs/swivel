@@ -12,7 +12,7 @@ const path = require('path');
  */
 const config = {
   watchFolders: [
-    path.resolve(__dirname, '../../packages/shared-ui'),
+    path.resolve(__dirname, '../../packages/ui'),
     path.resolve(__dirname, '../../packages/director'),
   ],
   resolver: {

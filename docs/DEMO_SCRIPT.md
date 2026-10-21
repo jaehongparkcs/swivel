@@ -13,7 +13,7 @@ vega virtual-device start
 vega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg -d VirtualDevice
 ```
 
-- The default demo is built in: night 65 with basketball, football and baseball, Dallas (DAL, football) as your team, 8x replay, starting at the right moment. **Every launch replays the same sequence**, so you can retake freely. (The basketball-only night is `BASKETBALL_DEMO` in `packages/shared-ui/src/swivel/demoConfig.ts`.)
+- The default demo is built in: night 65 with basketball, football and baseball, Dallas (DAL, football) as your team, 8x replay, starting at the right moment. **Every launch replays the same sequence**, so you can retake freely. (The basketball-only night is `BASKETBALL_DEMO` in `packages/ui/src/swivel/state/demoConfig.ts`.)
 - Record the simulator window with QuickTime (File → New Screen Recording → select the window). Record narration separately, or live with a headset mic.
 - Remote in the simulator: arrows, OK (Enter), Play/Pause, Fast-forward, Rewind. Check the VVD's remote panel or key mappings before recording.
 - Relaunch the app for each take. It opens on the splash, then **Set up tonight** with focus on **Start watching**; the game clock starts when you press OK there.

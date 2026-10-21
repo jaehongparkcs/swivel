@@ -8,7 +8,7 @@
     "paths": {
       "react": ["node_modules/@types/react"],
       "react-native": ["node_modules/react-native"],
-      "@multi-tv/shared-ui": ["../../packages/shared-ui/src"],
+      "@swivel/ui": ["../../packages/ui/src"],
       "@swivel/director": ["../../packages/director/src"]
     }
   }

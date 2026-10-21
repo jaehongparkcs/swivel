@@ -12,7 +12,7 @@ import {App} from '../src/App';
 // Remote input is hardware: keep the listeners so tests can press keys.
 const mockListeners = new Set<(key: string) => void>();
 jest.mock(
-  '../../../packages/shared-ui/src/remote-control/RemoteControlManager',
+  '../../../packages/ui/src/remote-control/RemoteControlManager',
   () => ({
     __esModule: true,
     default: {

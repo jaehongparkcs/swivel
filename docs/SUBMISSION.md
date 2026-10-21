@@ -1,7 +1,7 @@
 # Devpost submission draft
 
 **Track:** Fire TV (Vega OS)
-**Mini challenge:** Open Source, via a pull request to Amazon's `react-native-multi-tv-app-sample` (see `../PR_INSTRUCTIONS.md`). AWS Builder: not entered (no AWS services used).
+**Mini challenge:** Open Source, via a pull request to Amazon's `react-native-multi-tv-app-sample` (https://github.com/AmazonAppDev/react-native-multi-tv-app-sample/pull/138). AWS Builder: not entered (no AWS services used).
 
 ---
 

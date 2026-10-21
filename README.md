@@ -76,7 +76,7 @@ packages/director                pure TypeScript engine, no platform deps (29 un
   src/lineup.ts                  LineupSource / PlaybackController: where games come from, what gets tuned
   src/sim/                       deterministic simulators and fictional leagues (basketball, football, baseball)
   scripts/                       headless replays, demo search, seamlessness metrics
-packages/shared-ui/src
+packages/ui/src
   swivel/SwivelApp.tsx           splash → set up tonight → watch
   swivel/screens/                Splash, Setup, Watch, Your teams
   swivel/watch/                  stage, broadcast tile, game rail, caption, status bar
@@ -84,7 +84,7 @@ packages/shared-ui/src
   swivel/state/                  director hook, lineup, demo config, platform (URL options, storage)
   remote-control/                remote input per platform (Vega, Android TV, tvOS, web)
 apps/vega                        Vega OS app (production target) + smoke tests
-apps/expo-multi-tv               web / Android TV shell (fast iteration)
+apps/web               web / Android TV shell (fast iteration)
 ```
 
 **On a real device**, `LineupSource` is built from the Vega **EPG Provider** (which channels in your lineup carry tonight's games) plus a licensed sports data feed. `PlaybackController` maps the primary slot to **Vega Channel Tuning**, with additional players for multiview tiles. The demo replays a simulated slate so it carries no league footage or data rights. Teams are fictional, and video tiles are a rendered "broadcast" driven by the feed.
@@ -132,7 +132,7 @@ SPORTS=nba,nfl,mlb npx tsx scripts/runHeadless.ts 65 DAL   # any script, on a mi
 npx tsx scripts/findMixedDemo.ts 1 80   # search mixed nights for the best 3-sport demo window
 ```
 
-Demo knobs are in `packages/shared-ui/src/swivel/demoConfig.ts`. The default is night `65` with basketball, football and baseball, Dallas football as your team, at 8x replay: it opens on baseball, hops to basketball on an inning break, returns to your team, then splits football + baseball and goes three-up with all three sports; a basketball game goes to overtime and Dallas closes out a 4-point 4th quarter. `scripts/findMixedDemo.ts` found it. `BASKETBALL_DEMO` is the basketball-only night (51, Tampa). On web, override with `?seed=&fav=&speed=&start=<seconds>&lag=<min>-<max>&sports=nba,nfl,mlb`, or `?basketball=1`.
+Demo knobs are in `packages/ui/src/swivel/state/demoConfig.ts`. The default is night `65` with basketball, football and baseball, Dallas football as your team, at 8x replay: it opens on baseball, hops to basketball on an inning break, returns to your team, then splits football + baseball and goes three-up with all three sports; a basketball game goes to overtime and Dallas closes out a 4-point 4th quarter. `scripts/findMixedDemo.ts` found it. `BASKETBALL_DEMO` is the basketball-only night (51, Tampa). On web, override with `?seed=&fav=&speed=&start=<seconds>&lag=<min>-<max>&sports=nba,nfl,mlb`, or `?basketball=1`.
 
 ## License
 

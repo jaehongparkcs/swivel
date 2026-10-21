@@ -15,16 +15,16 @@ Node 22 and Yarn 4 (via corepack). For the Vega app you also need the Vega SDK; 
 | Path | What |
 | --- | --- |
 | `packages/director` | The engine: pure TypeScript, no platform dependencies. Feed reducer, per-sport rules (`src/sports/`), the director policy, learning, recaps, simulators. |
-| `packages/shared-ui/src/swivel` | The TV app: `SwivelApp` (splash → setup → watch), `screens/`, `watch/` (stage, tiles, rail, caption), `watch/venues/` (court, field, ballpark), `state/` (director hook, lineup, demo config, platform access). |
-| `packages/shared-ui/src/remote-control` | Remote input per platform (Vega, Android TV, tvOS, web), all on one `KeyEmitter`. |
+| `packages/ui/src/swivel` | The TV app: `SwivelApp` (splash → setup → watch), `screens/`, `watch/` (stage, tiles, rail, caption), `watch/venues/` (court, field, ballpark), `state/` (director hook, lineup, demo config, platform access). |
+| `packages/ui/src/remote-control` | Remote input per platform (Vega, Android TV, tvOS, web), all on one `KeyEmitter`. |
 | `apps/vega` | The Vega OS shell (production target). |
-| `apps/expo-multi-tv` | Web / Android TV shell, used for fast iteration. |
+| `apps/web` | Web / Android TV shell, used for fast iteration. |
 
 ## Adding a sport
 
 1. `packages/director/src/sports/<sport>.ts`: implement `Sport` (win probability, leverage, breaks, labels, recap scale) and register it in `sports/index.ts`.
 2. `packages/director/src/sim/`: a simulator and a fictional league in `teams.ts` (team codes must be unique across leagues).
-3. `packages/shared-ui/src/swivel/watch/venues/`: a venue drawing, registered in `VENUES`, and a glyph in `watch/SportGlyph.tsx`. Both are `Record<SportId, …>`, so TypeScript points at anything missing.
+3. `packages/ui/src/swivel/watch/venues/`: a venue drawing, registered in `VENUES`, and a glyph in `watch/SportGlyph.tsx`. Both are `Record<SportId, …>`, so TypeScript points at anything missing.
 4. Tests in `packages/director/test/sports.test.ts`.
 
 ## Conventions

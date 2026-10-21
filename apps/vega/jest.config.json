@@ -17,7 +17,7 @@
   ],
   "moduleNameMapper": {
     "^~/(.*)$": "<rootDir>/src/$1",
-    "^@multi-tv/shared-ui$": "<rootDir>/../../packages/shared-ui/src",
+    "^@swivel/ui$": "<rootDir>/../../packages/ui/src",
     "^@swivel/director$": "<rootDir>/../../packages/director/src"
   },
   "modulePaths": [

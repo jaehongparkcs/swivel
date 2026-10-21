@@ -7,7 +7,7 @@ const config = getDefaultConfig(__dirname); // eslint-disable-line no-undef
 
 // Configure Metro to work with Yarn workspaces
 config.watchFolders = [
-  path.resolve(__dirname, '../../packages/shared-ui'),
+  path.resolve(__dirname, '../../packages/ui'),
   path.resolve(__dirname, '../../packages/director'),
   path.resolve(__dirname, '../..'),
 ];
@@ -20,7 +20,7 @@ config.resolver = {
     path.resolve(__dirname, '../../node_modules'),
   ],
   extraNodeModules: {
-    '@multi-tv/shared-ui': path.resolve(__dirname, '../../packages/shared-ui/src'),
+    '@swivel/ui': path.resolve(__dirname, '../../packages/ui/src'),
     '@swivel/director': path.resolve(__dirname, '../../packages/director/src'),
   },
 };
