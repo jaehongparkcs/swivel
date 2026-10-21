@@ -14,6 +14,8 @@ export interface DemoConfig {
   resumeLagMs?: [number, number];
   /** Sports on tonight's lineup, assigned to games in turn. Unset = basketball only. */
   sports?: SportId[];
+  /** Show the splash and "Set up tonight" screens first (default). false = straight to watching. */
+  intro?: boolean;
 }
 
 /**
@@ -36,13 +38,14 @@ export const MIXED_DEMO: DemoConfig = { seed: 65, speed: 8, startAt: 9_920_000, 
 /** Which night the app opens on. BASKETBALL_DEMO is the basketball-only night. */
 export const DEFAULT_DEMO: DemoConfig = MIXED_DEMO;
 
-/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds)&sports=nba,nfl,mlb overrides the defaults (?basketball=1 opens the basketball-only night). */
+/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds)&sports=nba,nfl,mlb&intro=0 overrides the defaults (?basketball=1 opens the basketball-only night). */
 export function readDemoConfig(): DemoConfig {
   let cfg: DemoConfig = { ...DEFAULT_DEMO };
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
     const q = new URLSearchParams(window.location.search);
     if (q.get('basketball')) cfg = { ...BASKETBALL_DEMO };
     if (q.get('sports')) cfg.sports = q.get('sports')!.split(',') as SportId[];
+    if (q.get('intro') === '0') cfg.intro = false;
     if (q.get('seed')) cfg.seed = Number(q.get('seed'));
     if (q.get('speed')) cfg.speed = Number(q.get('speed'));
     if (q.get('seed') && !q.get('start')) cfg.startAt = undefined;

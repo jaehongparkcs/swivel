@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { DEFAULT_PREFS, type TeamPrefs } from '@swivel/director';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { buildSlate, DEFAULT_PREFS, type TeamPrefs } from '@swivel/director';
 import RemoteControlManager from '../app/remote-control/RemoteControlManager';
 import { SupportedKeys } from '../app/remote-control/SupportedKeys';
-import { readDemoConfig, SPEEDS } from './demoConfig';
+import { readDemoConfig, SPEEDS, type DemoConfig } from './demoConfig';
+import SplashScreen from './SplashScreen';
+import SetupScreen from './SetupScreen';
 import { useSwivel } from './useSwivel';
 import Stage, { STAGE_W } from './Stage';
 import GameRail from './GameRail';
@@ -15,9 +17,47 @@ import { fb, px } from './theme';
 type Focus = { zone: 'rail'; index: number } | { zone: 'stage'; index: number };
 
 
+/** Splash, then "Set up tonight", then watching. The replay clock starts when you press Start watching. */
 export default function SwivelApp() {
   const config = useMemo(() => readDemoConfig(), []);
-  const fbk = useSwivel(config, { ...DEFAULT_PREFS, loyalty: 'team-first', favorites: config.favorites, likes: [] });
+  const [stage, setStage] = useState<'splash' | 'setup' | 'watch'>(config.intro === false ? 'watch' : 'splash');
+  const initial: TeamPrefs = { ...DEFAULT_PREFS, loyalty: 'team-first', favorites: config.favorites, likes: [] };
+  const [prefs, setPrefs] = useState<TeamPrefs>(initial);
+  const games = useMemo(() => buildSlate(config.seed, 8, { sports: config.sports }).games, [config]);
+  const teams = useMemo(() => tonightsTeams(games), [games]);
+  const toSetup = useCallback(() => setStage('setup'), []);
+
+  // OK skips the splash.
+  useEffect(() => {
+    if (stage !== 'splash') return;
+    const listener = RemoteControlManager.addKeydownListener((key: SupportedKeys) => {
+      if (key === SupportedKeys.Enter) setStage('setup');
+    });
+    return () => RemoteControlManager.removeKeydownListener(listener);
+  }, [stage]);
+
+  if (stage === 'splash') {
+    const count = (s: string) => games.filter((g) => (g.sport ?? 'nba') === s).length;
+    const parts = [['nba', 'basketball'], ['nfl', 'football'], ['mlb', 'baseball']].filter(([s]) => count(s)).map(([s, n]) => `${count(s)} ${n}`);
+    return <SplashScreen games={games.length} sports={`Play-by-play for ${parts.join(', ')}`} onDone={toSetup} />;
+  }
+  if (stage === 'setup') {
+    return (
+      <SetupScreen
+        teams={teams}
+        initial={prefs}
+        onStart={(p) => {
+          setPrefs(p);
+          setStage('watch');
+        }}
+      />
+    );
+  }
+  return <WatchScreen config={config} initialPrefs={prefs} />;
+}
+
+function WatchScreen({ config, initialPrefs }: { config: DemoConfig; initialPrefs: TeamPrefs }) {
+  const fbk = useSwivel(config, initialPrefs);
   const { view } = fbk;
   const [screen, setScreen] = useState<'watch' | 'teams'>('watch');
   const [focus, setFocus] = useState<Focus | null>(null);
@@ -123,6 +163,7 @@ export default function SwivelApp() {
       <View style={styles.main}>
         <View>
           <View style={styles.brandRow}>
+            <Image source={require('../assets/images/swivel_mark.png')} style={styles.mark} />
             <Text style={styles.brand}>Swivel</Text>
             <Text style={styles.brandSub}>Autopilot for tonight's games</Text>
           </View>
@@ -140,7 +181,8 @@ export default function SwivelApp() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: fb.ink, paddingHorizontal: px(32), paddingTop: px(20), paddingBottom: px(10) },
   main: { flex: 1, flexDirection: 'row' },
-  brandRow: { flexDirection: 'row', alignItems: 'baseline', height: px(56), marginBottom: px(14) },
+  brandRow: { flexDirection: 'row', alignItems: 'center', height: px(56), marginBottom: px(14) },
+  mark: { width: px(48), height: px(48), marginRight: px(12) },
   brand: { fontSize: px(34), fontWeight: '900', color: fb.amber, letterSpacing: px(-0.5) },
   brandSub: { fontSize: px(22), fontWeight: '600', color: fb.dim, marginLeft: px(16) },
 });

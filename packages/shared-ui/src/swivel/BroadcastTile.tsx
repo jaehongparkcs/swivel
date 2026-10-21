@@ -76,6 +76,7 @@ function Court({ g, box, now, live }: SurfaceProps) {
   const offenseLeft = g.screen.lastEvent?.team === 'away';
   const ft = (v: number) => v * s;
   const line = LINE;
+  const squad = players(g.info.id.charCodeAt(1), offenseLeft, now);
   return (
       <View
         style={{
@@ -148,7 +149,7 @@ function Court({ g, box, now, live }: SurfaceProps) {
         />
         {/* Players */}
         {live &&
-          players(g.info.id.charCodeAt(1), offenseLeft, now).map((p, i) => {
+          squad.map((p, i) => {
             const team = (p.offense ? (offenseLeft ? away : home) : offenseLeft ? home : away);
             const r = ft(1.6);
             return (
@@ -168,6 +169,22 @@ function Court({ g, box, now, live }: SurfaceProps) {
               />
             );
           })}
+        {/* The ball, dribbled by the ball handler (illustrative: play-by-play has no ball tracking) */}
+        {live && squad[0] && (
+          <View
+            style={{
+              position: 'absolute',
+              left: ft(squad[0].x + (offenseLeft ? -2 : 2)) - ft(0.8),
+              top: ft(squad[0].y + 1.2 + Math.abs(Math.sin(now / 160)) * 0.9) - ft(0.8),
+              width: ft(1.6),
+              height: ft(1.6),
+              borderRadius: ft(0.8),
+              backgroundColor: '#E07A1F',
+              borderWidth: Math.max(1, ft(0.2)),
+              borderColor: '#3B1F0A',
+            }}
+          />
+        )}
       </View>
   );
 }
@@ -228,6 +245,21 @@ function FootballField({ g, box, now, live }: SurfaceProps) {
           {/* Line of scrimmage and first-down marker */}
           <View style={{ position: 'absolute', top: 0, bottom: 0, left: yd(lineX) - 1, width: Math.max(2, yd(0.4)), backgroundColor: '#4CC9F0' }} />
           <View style={{ position: 'absolute', top: 0, bottom: 0, left: yd(Math.max(10, Math.min(110, lineX + 10 * dir))) - 1, width: Math.max(2, yd(0.4)), backgroundColor: '#FFD166' }} />
+          {/* The ball at its real spot from the feed, in the quarterback's hands */}
+          <View
+            style={{
+              position: 'absolute',
+              left: yd(lineX - dir * 4.2) - yd(0.9),
+              top: yd(26.6) - yd(0.55),
+              width: yd(1.8),
+              height: yd(1.1),
+              borderRadius: yd(0.55),
+              backgroundColor: '#8B4A2B',
+              borderWidth: Math.max(1, yd(0.15)),
+              borderColor: fb.chalk,
+              zIndex: 2,
+            }}
+          />
           {formation.map(([depth, y, isOffense], i) => {
             const ph = i * 1.3 + g.info.id.charCodeAt(1) * 0.37;
             const x = lineX + dir * depth + Math.sin(now / 900 + ph) * 0.5;
@@ -257,94 +289,132 @@ function FootballField({ g, box, now, live }: SurfaceProps) {
   );
 }
 
-// Baseball view from behind home plate, in arbitrary units.
-const BW = 100;
-const BH = 80;
-const BASES: Array<[number, number]> = [
-  [64, 58], // first
-  [50, 44], // second
-  [36, 58], // third
-];
+// Baseball: a ballpark seen from above, home plate at the bottom. Distances are in
+// "base lengths" (90 ft); the fence is 3.3 base lengths out (pulled in a little so
+// the infield reads at TV distance).
+const FENCE = 3.3;
+const MOUND = 0.672; // 60.5 ft
+const DIRT = 1.06; // the infield dirt arc, 95 ft around the mound
+/** Fielders by angle from the first-base line (0) to the third-base line (90) and distance from home. */
 const FIELDERS: Array<[number, number]> = [
-  [50, 60], [50, 77], [66, 53], [58, 45], [42, 45], [34, 53], [24, 28], [50, 17], [76, 28],
+  [45, MOUND], [45, -0.13], [12, 1.08], [32, 1.45], [58, 1.45], [78, 1.08], [76, 2.6], [45, 2.9], [14, 2.6],
 ];
+const GRASS = '#2E7A3F';
+const DIRT_COLOR = '#B9825A';
+const TRACK = '#9C6B44';
+const STANDS = '#16243A';
 
-/** Baseball: the diamond with occupied bases lit, fielders in position, and the batter and runners. */
+/** Baseball: fair territory, the infield, occupied bases lit, fielders in position, batter, runners and the pitch. */
 function BaseballDiamond({ g, box, now, live }: SurfaceProps) {
   const { home, away } = g.info;
-  const s = Math.min((box.width - 2 * box.margin) / BW, (box.height - 2 * box.margin) / BH);
-  const w = BW * s;
-  const h = BH * s;
-  const u = (v: number) => v * s;
+  // Fit the fan (fence R straight up, foul poles at 45°) plus the catcher below home.
+  const avail = { w: box.width - 2 * box.margin, h: box.height - 2 * box.margin };
+  const b = Math.min(avail.h / (FENCE + 0.35), avail.w / (2 * FENCE * Math.SQRT1_2)); // px per base length
+  const R = FENCE * b;
+  const hx = box.width / 2;
+  const hy = box.margin + (avail.h + R + 0.15 * b) / 2; // home plate, field centered vertically
+  /** Field point at `deg` from the first-base line and `d` base lengths from home, in tile pixels. */
+  const at = (deg: number, d: number): [number, number] => {
+    const a = ((45 - deg) * Math.PI) / 180; // 0 = straight up to center field
+    return [hx + Math.sin(a) * d * b, hy - Math.cos(a) * d * b];
+  };
   const awayBats = g.screen.period % 2 === 1;
   const batting = awayBats ? away : home;
   const fielding = awayBats ? home : away;
   const bases = g.screen.bases ?? 0;
-  const dot = (x: number, y: number, team: typeof home, key: string, size = 1.6) => (
+  const S = R; // side of the rotated fair-territory square; its bottom corner sits on home plate
+  const local = (deg: number, d: number) => {
+    // The same point in the square's own (unrotated) coordinates: home is (S, S).
+    const r = (deg * Math.PI) / 180;
+    return [S - d * b * Math.sin(r), S - d * b * Math.cos(r)];
+  };
+  const [mx, my] = local(45, MOUND);
+  const dot = (x: number, y: number, team: typeof home, key: string, size = 0.075) => (
     <View
       key={key}
       style={{
         position: 'absolute',
-        left: u(x) - u(size),
-        top: u(y) - u(size),
-        width: 2 * u(size),
-        height: 2 * u(size),
-        borderRadius: u(size),
+        left: x - size * b,
+        top: y - size * b,
+        width: 2 * size * b,
+        height: 2 * size * b,
+        borderRadius: size * b,
         backgroundColor: team.color,
-        borderWidth: Math.max(1, u(0.35)),
+        borderWidth: Math.max(1, 0.018 * b),
         borderColor: team.alt,
       }}
     />
   );
-  const sway = (i: number) => Math.sin(now / 1000 + i * 1.7) * 0.4;
-  return (
+  const bag = (x: number, y: number, key: string, color: string, size = 0.085) => (
     <View
-      style={{
-        position: 'absolute',
-        left: (box.width - w) / 2,
-        top: (box.height - h) / 2,
-        width: w,
-        height: h,
-        backgroundColor: '#1F4D2B',
-        borderRadius: u(3),
-        overflow: 'hidden',
-      }}
-    >
-      {/* Outfield grass, bounded by the fence */}
-      <View style={{ position: 'absolute', left: u(50 - 62), top: u(74 - 62), width: u(124), height: u(124), borderRadius: u(62), backgroundColor: '#2F6B3B', borderWidth: Math.max(2, u(0.6)), borderColor: home.color }} />
-      {/* Infield dirt and grass */}
-      <View style={{ position: 'absolute', left: u(50 - 15), top: u(58 - 15), width: u(30), height: u(30), backgroundColor: '#B07A4E', transform: [{ rotate: '45deg' }] }} />
-      <View style={{ position: 'absolute', left: u(50 - 9.5), top: u(58 - 9.5), width: u(19), height: u(19), backgroundColor: '#2F6B3B', transform: [{ rotate: '45deg' }] }} />
-      <View style={{ position: 'absolute', left: u(50 - 2.4), top: u(60 - 2.4), width: u(4.8), height: u(4.8), borderRadius: u(2.4), backgroundColor: '#B07A4E' }} />
-      {/* Home plate and bases (lit when occupied) */}
-      <View style={{ position: 'absolute', left: u(50 - 1.3), top: u(72 - 1.3), width: u(2.6), height: u(2.6), backgroundColor: LINE, transform: [{ rotate: '45deg' }] }} />
-      {BASES.map(([x, y], i) => {
-        const on = live && (bases & (1 << i)) !== 0;
-        return (
-          <View
-            key={`b${i}`}
-            style={{
-              position: 'absolute',
-              left: u(x - 1.6),
-              top: u(y - 1.6),
-              width: u(3.2),
-              height: u(3.2),
-              backgroundColor: on ? fb.amber : LINE,
-              transform: [{ rotate: '45deg' }],
-            }}
-          />
-        );
-      })}
+      key={key}
+      style={{ position: 'absolute', left: x - size * b, top: y - size * b, width: 2 * size * b, height: 2 * size * b, backgroundColor: color, transform: [{ rotate: '45deg' }] }}
+    />
+  );
+  const sway = (i: number) => Math.sin(now / 1000 + i * 1.7) * 0.03;
+  const baseSpots: Array<[number, number]> = [at(0, 1), at(45, Math.SQRT2), at(90, 1)];
+  // The pitch: mound to plate in the first third of a 2.4 s cycle.
+  const phase = (now % 2400) / 2400;
+  const pitch = phase < 0.33 ? at(45, MOUND * (1 - phase / 0.33) + 0.05) : undefined;
+
+  return (
+    <View style={{ position: 'absolute', left: 0, top: 0, width: box.width, height: box.height, overflow: 'hidden' }}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: STANDS }]} />
+      {/* Foul territory behind home and down the lines */}
+      <View style={{ position: 'absolute', left: hx - 1.9 * b, top: hy - 1.9 * b, width: 3.8 * b, height: 3.8 * b, borderRadius: 1.9 * b, backgroundColor: '#24603A' }} />
+      {/* Fair territory: a square rotated 45° with its bottom corner on home plate, clipping a fence-radius circle into a fan */}
+      <View
+        style={{
+          position: 'absolute',
+          left: hx - S / 2,
+          top: hy - S * Math.SQRT1_2 - S / 2,
+          width: S,
+          height: S,
+          overflow: 'hidden',
+          transform: [{ rotate: '45deg' }],
+        }}
+      >
+        <View style={{ position: 'absolute', left: 0, top: 0, width: 2 * S, height: 2 * S, borderRadius: S, backgroundColor: TRACK }} />
+        <View style={{ position: 'absolute', left: 0.06 * b, top: 0.06 * b, width: 2 * S - 0.12 * b, height: 2 * S - 0.12 * b, borderRadius: S - 0.06 * b, backgroundColor: GRASS }} />
+        {/* Infield dirt arc around the mound, the infield grass inside the base paths, the home-plate circle */}
+        <View style={{ position: 'absolute', left: mx - DIRT * b, top: my - DIRT * b, width: 2 * DIRT * b, height: 2 * DIRT * b, borderRadius: DIRT * b, backgroundColor: DIRT_COLOR }} />
+        <View style={{ position: 'absolute', left: S - 0.92 * b, top: S - 0.92 * b, width: 0.84 * b, height: 0.84 * b, backgroundColor: GRASS }} />
+        <View style={{ position: 'absolute', left: S - 0.22 * b, top: S - 0.22 * b, width: 0.44 * b, height: 0.44 * b, borderRadius: 0.22 * b, backgroundColor: DIRT_COLOR }} />
+        <View style={{ position: 'absolute', left: mx - 0.1 * b, top: my - 0.1 * b, width: 0.2 * b, height: 0.2 * b, borderRadius: 0.1 * b, backgroundColor: DIRT_COLOR }} />
+        {/* Foul lines */}
+        <View style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: Math.max(2, 0.02 * b), backgroundColor: LINE }} />
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: Math.max(2, 0.02 * b), backgroundColor: LINE }} />
+      </View>
+      {/* Bases (lit when occupied) and home plate */}
+      {baseSpots.map(([x, y], i) => bag(x, y, `b${i}`, live && bases & (1 << i) ? fb.amber : LINE))}
+      {bag(hx, hy, 'home', LINE, 0.06)}
       {live && (
         <>
-          {FIELDERS.map(([x, y], i) => dot(x + sway(i), y + sway(i + 4), fielding, `f${i}`))}
-          {dot(46.5, 72, batting, 'batter')}
-          {BASES.map(([x, y], i) => ((bases & (1 << i)) !== 0 ? dot(x - 2.5, y + 1, batting, `r${i}`, 1.4) : null))}
+          {FIELDERS.map(([deg, d], i) => {
+            const [x, y] = at(deg + sway(i) * 20, d + sway(i + 3));
+            return dot(x, y, fielding, `f${i}`);
+          })}
+          {dot(hx - 0.14 * b, hy - 0.02 * b, batting, 'batter')}
+          {baseSpots.map(([x, y], i) => (bases & (1 << i) ? dot(x + (i === 1 ? 0 : i === 0 ? -0.12 * b : 0.12 * b), y + 0.1 * b, batting, `r${i}`, 0.065) : null))}
+          {pitch && (
+            <View
+              style={{
+                position: 'absolute',
+                left: pitch[0] - 0.035 * b,
+                top: pitch[1] - 0.035 * b,
+                width: 0.07 * b,
+                height: 0.07 * b,
+                borderRadius: 0.035 * b,
+                backgroundColor: fb.chalk,
+              }}
+            />
+          )}
         </>
       )}
     </View>
   );
 }
+
 function BroadcastTile({ g, width, height, audio, focused, compact }: Props) {
   const { home, away, channel } = g.info;
   const tiny = width < px(520);

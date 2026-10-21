@@ -6,14 +6,19 @@ NBA CrunchTime and NFL RedZone are one channel for everyone. Swivel is personal:
 
 Built for the Amazon Developer Hackathon (Fire TV track) on **Vega OS** with React Native. The same code also runs in a browser for quick iteration.
 
-![Three-up: your team on the big tile, two other crunch-time games beside it](docs/three-up.png)
+<img src="docs/icon.png" width="96" align="right" alt="Swivel icon">
 
-| Your team, full screen | Split: your team plus a close finish |
+![Three-up: football, baseball and basketball at once, your team on the big tile](docs/three-up.png)
+
+| Opening: set up tonight's teams by sport | Your team, full screen |
 |---|---|
-| ![single](docs/single.png) | ![split](docs/split.png) |
+| ![setup](docs/setup.png) | ![single](docs/single.png) |
+| **Split: your team plus a tied 8th inning** | **Baseball, with the bases and fielders** |
+| ![split](docs/split.png) | ![baseball](docs/baseball.png) |
 
 ## What it does
 
+- **A real opening.** A splash while it reads the lineup, then **Set up tonight**: tonight's teams grouped by sport (OK cycles favorite → like → off), how loyal the autopilot should be, and split & quad on or off. Start watching is focused, so one press gets you in.
 - **Your team first.** When one of your teams is live, you're on it, unless it's a blowout. When your team comes back from a break, you go back immediately. In multiview, your team always gets the big tile and the audio. (The "Your teams" screen also offers *Balanced* and *Best game on*.)
 - **Commercials leave the screen.** When your game breaks for a timeout, media timeout, quarter break or halftime, Swivel moves you to the best live game. In split, three-up or quad, a game on a timeout keeps its tile under a "Back in" card while the audio moves to live action, so the grid doesn't jump around. Longer breaks (quarter, halftime) take the game out of the grid until play resumes. Replay reviews stay on screen, since they're game action.
 - **No guessed countdowns.** Break lengths vary (media timeouts run about 1:50–3:50), so Swivel never invents one. It shows how long the break has run and watches the play-by-play feed for play to resume. Because the feed is 25–55 s ahead of the broadcast, it knows play is back *before your stream does*, which gives a real countdown ("Back in 0:18") and a switch timed to the moment the video returns.
@@ -35,7 +40,7 @@ Hops, multiview, learning and recaps are shared; each sport plugs in its own rul
 | Win probability | margin + time | margin + time + the drive in progress (expected points from field position) | margin + innings left + the base-out state (RE24 run expectancy) |
 | Crunch time | 4th quarter / OT, high leverage | 4th quarter / OT, high leverage | 8th inning on, high leverage (a one-run 9th) |
 
-Football's "double-dip" (score, commercial, kickoff, commercial) is handled: Swivel waits out the second break instead of returning for 25 seconds of kickoff. The demo night mixes all three. The rail marks each game's sport, the tile draws a court, a field (ball at the line of scrimmage) or a diamond (occupied bases lit), and the Your teams screen lists tonight's teams.
+Football's "double-dip" (score, commercial, kickoff, commercial) is handled: Swivel waits out the second break instead of returning for 25 seconds of kickoff. The demo night mixes all three. The rail marks each game's sport, and each tile draws the right venue: a court with the ball handler dribbling, a field with the ball at its real spot from the feed (the line of scrimmage), or a ballpark with the occupied bases lit, fielders in position and the pitch coming in. Play-by-play feeds carry football's ball spot but not live ball tracking for basketball or baseball, so those two balls are illustrative.
 
 ### Why not computer vision for break detection?
 
