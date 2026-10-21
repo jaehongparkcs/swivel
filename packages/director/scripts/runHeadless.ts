@@ -2,11 +2,14 @@
  * Run the director over a whole simulated slate and print every decision.
  *   tsx scripts/runHeadless.ts [seed] [favorites,comma,separated]
  */
-import { Director, buildSlate, clockLabel, matchup, periodLabel, ReplayLineupSource } from '../src';
+import { Director, buildSlate, gameClock, matchup, ReplayLineupSource, sportOf, type SportId } from '../src';
+
+/** SPORTS=nba,nfl,mlb for a mixed night (default: basketball only). */
+const SPORTS = process.env.SPORTS ? (process.env.SPORTS.split(',') as SportId[]) : undefined;
 
 const seed = Number(process.argv[2] ?? 7);
 const favorites = (process.argv[3] ?? '').split(',').filter(Boolean);
-const slate = buildSlate(seed);
+const slate = buildSlate(seed, 8, { sports: SPORTS });
 const src = new ReplayLineupSource(slate);
 const director = new Director(src.games(), { favorites, likes: [], loyalty: 'balanced', multiview: true });
 
@@ -19,7 +22,7 @@ console.log(`Slate ${seed}:`);
 for (const g of slate.games) {
   const last = slate.events.filter((e) => e.gameId === g.id).pop()!;
   console.log(
-    `  ${g.id} ${matchup(g)} tip ${fmt(g.scheduledStart)} delay ${g.channel.delayMs / 1000}s -> ${last.text} (${periodLabel(last.period)})`,
+    `  ${g.id} ${matchup(g)} tip ${fmt(g.scheduledStart)} delay ${g.channel.delayMs / 1000}s -> ${last.text} (${sportOf(g).periodLabel(last.period)})`,
   );
 }
 
@@ -34,7 +37,7 @@ for (let t = 0; t <= slate.endsAt + 60_000; t += 1000) {
   for (const d of fresh) {
     counts[d.kind] = (counts[d.kind] ?? 0) + 1;
     const p = view.insights.find((g) => g.info.id === view.slots[0]);
-    const where = p ? `${periodLabel(p.screen.period)} ${clockLabel(p.displayClock)}` : '';
+    const where = p ? gameClock(p).join(' ') : '';
     console.log(`${fmt(t)} [${view.layout.padEnd(6)}] ${d.kind.padEnd(12)} ${d.title} — ${d.detail}  {${view.slots.join(',')} ${where}}`);
     if (d.recap) console.log(`         ↳ ${d.recap.label}: ${d.recap.text}`);
   }

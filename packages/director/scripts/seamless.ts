@@ -10,7 +10,10 @@
  *   tsx scripts/seamless.ts [nights=40] [firstSeed=1]
  *   MUST_SEE=2.5 tsx scripts/seamless.ts    # try a lower crunch-time bar for multiview
  */
-import { Director, buildSlate, isCommercial, ReplayLineupSource, type DirectorView } from '../src';
+import { Director, buildSlate, isCommercial, ReplayLineupSource, type DirectorView, type SportId } from '../src';
+
+/** SPORTS=nba,nfl,mlb for a mixed night (default: basketball only). */
+const SPORTS = process.env.SPORTS ? (process.env.SPORTS.split(',') as SportId[]) : undefined;
 
 const nights = Number(process.argv[2] ?? 40);
 const firstSeed = Number(process.argv[3] ?? 1);
@@ -29,7 +32,7 @@ export interface SeamlessStats {
 }
 
 export function measure(seed: number): SeamlessStats {
-  const slate = buildSlate(seed);
+  const slate = buildSlate(seed, 8, { sports: SPORTS });
   const src = new ReplayLineupSource(slate);
   const fav = slate.games[seed % slate.games.length].home.code;
   const mustSee = process.env.MUST_SEE ? { mustSeeLeverage: Number(process.env.MUST_SEE) } : {};

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { clockLabel, durationLabel, periodLabel, type DirectorView, type GameInsight } from '@swivel/director';
+import { durationLabel, gameClock, sportOf, type BreakKind, type DirectorView, type GameInsight, type SportId } from '@swivel/director';
 import { fb, px, type } from './theme';
 
 interface Props {
@@ -16,16 +16,50 @@ function statusOf(g: GameInsight, t: number): { text: string; color: string } {
   if (s.phase === 'final') return { text: 'Final', color: fb.dim };
   if (s.phase === 'pregame') {
     const mins = Math.max(0, Math.round((g.info.scheduledStart - t) / 60000));
-    return { text: mins > 0 ? `Tips in ${mins}m` : 'Tip-off', color: fb.dim };
+    const [soon, now] = START_WORDS[sportOf(g.info).id];
+    return { text: mins > 0 ? `${soon} ${mins}m` : now, color: fb.dim };
   }
   if (s.phase === 'break') {
     const kind = s.breakKind ?? 'timeout';
     if (g.resumeIncomingInMs !== undefined) return { text: `Back in ${durationLabel(g.resumeIncomingInMs)}`, color: fb.amber };
-    const short = { timeout: 'Timeout', mandatory: 'Media break', quarter: 'Qtr break', halftime: 'Halftime', overtime: 'To OT', review: 'Review' }[kind];
+    const short = kind === 'inning' ? gameClock(g)[0] : kind === 'mandatory' && g.info.sport === 'nfl' ? 'TV timeout' : SHORT_BREAKS[kind];
     const el = g.breakElapsedMs;
     return { text: kind === 'halftime' || el === undefined ? short : `${short} ${durationLabel(el)}`, color: fb.buzzer };
   }
-  return { text: `${periodLabel(s.period)} ${clockLabel(g.displayClock)}`, color: fb.chalk };
+  return { text: gameClock(g).join(' '), color: fb.chalk };
+}
+
+const START_WORDS = { nba: ['Tips in', 'Tip-off'], nfl: ['Kickoff in', 'Kickoff'], mlb: ['First pitch in', 'First pitch'] } as const;
+
+const SHORT_BREAKS: Record<BreakKind, string> = {
+  timeout: 'Timeout',
+  mandatory: 'Media break',
+  quarter: 'Qtr break',
+  halftime: 'Halftime',
+  overtime: 'To OT',
+  review: 'Review',
+  twominute: '2-min warning',
+  inning: 'Inning break',
+  pitching: 'Pitching chg',
+};
+
+/** A tiny ball so mixed nights show each game's sport without crowding the scores. */
+function SportGlyph({ sport }: { sport: SportId }) {
+  if (sport === 'nfl') {
+    return (
+      <View style={[styles.glyph, { width: px(22), height: px(14), borderRadius: px(7), backgroundColor: '#8B4A2B', justifyContent: 'center', alignItems: 'center' }]}>
+        <View style={{ width: px(9), height: px(2), backgroundColor: fb.chalk }} />
+      </View>
+    );
+  }
+  if (sport === 'mlb') {
+    return <View style={[styles.glyph, { width: px(16), height: px(16), borderRadius: px(8), backgroundColor: fb.chalk, borderWidth: px(2), borderColor: '#D62828' }]} />;
+  }
+  return (
+    <View style={[styles.glyph, { width: px(16), height: px(16), borderRadius: px(8), backgroundColor: '#E07A1F', justifyContent: 'center' }]}>
+      <View style={{ height: px(1.5), backgroundColor: '#3B1F0A' }} />
+    </View>
+  );
 }
 
 /** Leverage as a 0..1 meter: log scale, 1 = an even opening tip, full = last-possession drama. */
@@ -34,7 +68,23 @@ function heat(g: GameInsight): number {
   return Math.max(0.03, Math.min(1, Math.log2(1 + g.leverage) / 3));
 }
 
-function Row({ g, t, onScreen, audio, focused, favorite }: { g: GameInsight; t: number; onScreen: boolean; audio: boolean; focused: boolean; favorite: boolean }) {
+function Row({
+  g,
+  t,
+  onScreen,
+  audio,
+  focused,
+  favorite,
+  showSport,
+}: {
+  g: GameInsight;
+  t: number;
+  onScreen: boolean;
+  audio: boolean;
+  focused: boolean;
+  favorite: boolean;
+  showSport: boolean;
+}) {
   const st = statusOf(g, t);
   const h = heat(g);
   const hot = g.tags.includes('crunch') || g.tags.includes('overtime');
@@ -46,13 +96,14 @@ function Row({ g, t, onScreen, audio, focused, favorite }: { g: GameInsight; t: 
   return (
     <View style={[styles.row, onScreen && styles.rowOnScreen, focused && styles.rowFocused]}>
       <View style={{ flex: 1 }}>
-        {lines.map(([team, score]) => (
+        {lines.map(([team, score], i) => (
           <View key={team.code} style={styles.teamLine}>
             <View style={[styles.chip, { backgroundColor: team.color }]} />
             <Text style={[styles.code, final && { color: fb.haze }]}>{team.code}</Text>
             <Text style={[styles.score, type.digits, final && { color: fb.haze }]}>
               {g.screen.phase === 'pregame' ? '' : String(score)}
             </Text>
+            {showSport && i === 0 && <SportGlyph sport={sportOf(g.info).id} />}
           </View>
         ))}
       </View>
@@ -71,6 +122,8 @@ function Row({ g, t, onScreen, audio, focused, favorite }: { g: GameInsight; t: 
 
 export default function GameRail({ view, order, focused, favorites }: Props) {
   const byId = new Map(view.insights.map((g) => [g.info.id, g]));
+  // Only label each game's sport on nights with more than one.
+  const mixed = new Set(view.insights.map((g) => g.info.sport ?? 'nba')).size > 1;
   return (
     <View style={styles.rail}>
       <View style={styles.header}>
@@ -91,6 +144,7 @@ export default function GameRail({ view, order, focused, favorites }: Props) {
             audio={view.audio === id}
             focused={focused === i + 1}
             favorite={fav}
+            showSport={mixed}
           />
         );
       })}
@@ -128,5 +182,6 @@ const styles = StyleSheet.create({
   status: { fontSize: px(22), fontWeight: '700', textAlign: 'right' },
   meter: { width: px(160), height: px(8), borderRadius: px(4), backgroundColor: fb.line, marginTop: px(10), overflow: 'hidden' },
   meterFill: { height: px(8), borderRadius: px(4) },
+  glyph: { marginLeft: 'auto', marginRight: px(14) },
   marks: { fontSize: px(17), fontWeight: '600', color: fb.amber, marginTop: px(8), height: px(22) },
 });

@@ -1,5 +1,7 @@
 import { between, makeRng, pick, weighted, type Rng } from '../rng';
 import type { FeedEvent, FeedEventType, GameInfo, Side } from '../types';
+import { simulateMlb } from './simulateMlb';
+import { simulateNfl } from './simulateNfl';
 
 /**
  * Possession-level pro-basketball simulator that emits a play-by-play feed with
@@ -244,6 +246,13 @@ export function simulateGame(info: GameInfo, opts: SimOptions): FeedEvent[] {
 
     if (dead) deadBall(deadAgainst && lastScorer !== deadAgainst ? deadAgainst : undefined);
   }
+}
+
+/** Simulate any sport's game. */
+export function simulate(info: GameInfo, opts: SimOptions): FeedEvent[] {
+  if (!info.sport || info.sport === 'nba') return simulateGame(info, opts);
+  const events = info.sport === 'nfl' ? simulateNfl(info, opts) : simulateMlb(info, opts);
+  return withResumeLag(events, opts);
 }
 
 /** Publish each "play resumes" late, using its own RNG so the game itself is unchanged. */

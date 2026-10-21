@@ -8,6 +8,10 @@ export const BREAK_DURATION_MS: Record<BreakKind, number> = {
   halftime: 900_000,
   overtime: 130_000,
   review: 75_000,
+  // Not basketball breaks; here so every sport's table has the same keys.
+  twominute: 150_000,
+  inning: 135_000,
+  pitching: 140_000,
 };
 
 /** Breaks that put the broadcast in commercial (a replay review usually doesn't). */
@@ -19,13 +23,19 @@ export const BREAK_EVENT_TYPES: FeedEventType[] = [
   'timeout',
   'mandatory_timeout',
   'review',
+  'two_minute_warning',
+  'pitching_change',
   'period_end',
   'game_end',
 ];
 
-export function breakRemainingMs(s: GameSnapshot, t: number): number | undefined {
+export function breakRemainingMs(
+  s: GameSnapshot,
+  t: number,
+  durations: Record<BreakKind, number> = BREAK_DURATION_MS,
+): number | undefined {
   if (s.phase !== 'break' || !s.breakKind || s.breakStartedAt === undefined) return undefined;
-  const expected = BREAK_DURATION_MS[s.breakKind];
+  const expected = durations[s.breakKind];
   return Math.max(5_000, expected - (t - s.breakStartedAt));
 }
 

@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import type { SportId } from '@swivel/director';
 
 export interface DemoConfig {
   /** Which simulated night to replay. */
@@ -11,6 +12,8 @@ export interface DemoConfig {
   favorites: string[];
   /** Report "play resumes" this many ms late ([min, max]), like real feeds. Off when unset. */
   resumeLagMs?: [number, number];
+  /** Sports on tonight's lineup, assigned to games in turn. Unset = basketball only. */
+  sports?: SportId[];
 }
 
 /**
@@ -18,13 +21,25 @@ export interface DemoConfig {
  * three-up crunch time, commercials collapsing the grid, and Tampa going to OT.
  * Found with packages/director/scripts/findDemo.ts.
  */
-export const DEFAULT_DEMO: DemoConfig = { seed: 51, speed: 8, startAt: 5_960_000, favorites: ['TPA'] };
+export const BASKETBALL_DEMO: DemoConfig = { seed: 51, speed: 8, startAt: 5_960_000, favorites: ['TPA'] };
 
-/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds) overrides the defaults. */
+/**
+ * Night 45 mixed (basketball, football, baseball) with Memphis football as your team:
+ * extra-inning baseball, a tied 4th quarter, and your team joining a three-up.
+ * Found with SPORTS=nba,nfl,mlb scripts/findDemo.ts.
+ */
+export const MIXED_DEMO: DemoConfig = { seed: 45, speed: 8, startAt: 9_600_000, favorites: ['MEM'], sports: ['nba', 'nfl', 'mlb'] };
+
+/** Which night the app opens on. Switch to MIXED_DEMO for basketball + football + baseball. */
+export const DEFAULT_DEMO: DemoConfig = BASKETBALL_DEMO;
+
+/** On web, ?seed=74&speed=8&start=7800 (seconds)&lag=5-15 (seconds)&sports=nba,nfl,mlb overrides the defaults (?mixed=1 opens MIXED_DEMO). */
 export function readDemoConfig(): DemoConfig {
-  const cfg: DemoConfig = { ...DEFAULT_DEMO };
+  let cfg: DemoConfig = { ...DEFAULT_DEMO };
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
     const q = new URLSearchParams(window.location.search);
+    if (q.get('mixed')) cfg = { ...MIXED_DEMO };
+    if (q.get('sports')) cfg.sports = q.get('sports')!.split(',') as SportId[];
     if (q.get('seed')) cfg.seed = Number(q.get('seed'));
     if (q.get('speed')) cfg.speed = Number(q.get('speed'));
     if (q.get('seed') && !q.get('start')) cfg.startAt = undefined;

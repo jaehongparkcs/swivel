@@ -9,6 +9,9 @@
 
 export type Side = 'home' | 'away';
 
+/** Sports Swivel can direct. Each one plugs its rules in through a `Sport` (see sports/). */
+export type SportId = 'nba' | 'nfl' | 'mlb';
+
 export interface Team {
   code: string; // 3-letter code, e.g. "ATX"
   city: string;
@@ -27,16 +30,20 @@ export interface ChannelRef {
 }
 
 export type FeedEventType =
-  | 'tipoff'
+  | 'tipoff' // game start (tip-off, kickoff, first pitch)
   | 'score'
   | 'miss'
   | 'rebound'
   | 'turnover'
   | 'foul'
   | 'freethrow'
+  | 'play' // any other live action (a football play, a plate appearance)
+  | 'kickoff' // football: kickoff after a score or to start a half
   | 'timeout' // team timeout (full) -> commercial break
   | 'mandatory_timeout' // league-mandated media timeout -> commercial break
-  | 'review' // replay review: stoppage, usually no commercial
+  | 'review' // replay review or challenge: stoppage, usually no commercial
+  | 'two_minute_warning' // football: commercial at 2:00 of the 2nd and 4th quarters
+  | 'pitching_change' // baseball: mid-inning commercial
   | 'resume' // play resumes after a stoppage (inbound / ball in play)
   | 'period_end'
   | 'period_start'
@@ -48,8 +55,9 @@ export interface FeedEvent {
   /** Slate-clock ms at which the feed published this event. */
   t: number;
   type: FeedEventType;
-  period: number; // 1-4 regulation, 5+ overtime
-  /** Game clock (seconds remaining in period) at this event. */
+  /** Basketball and football: 1-4 regulation, 5+ overtime. Baseball: half-inning, 1 = top of the 1st, 2 = bottom of the 1st. */
+  period: number;
+  /** Game clock (seconds remaining in period) at this event. Always 0 in baseball. */
   clock: number;
   /** Whether the game clock is running after this event. */
   clockRunning: boolean;
@@ -58,18 +66,37 @@ export interface FeedEvent {
   team?: Side;
   points?: number;
   text: string;
+  /** Baseball: outs in the half-inning after this event. */
+  outs?: number;
+  /** Baseball: runners on base after this event, bitmask (1 = first, 2 = second, 4 = third). */
+  bases?: number;
+  /** Football: team with the ball after this event. */
+  possession?: Side;
+  /** Football: ball position, yards from the offense's own goal line (80 = the red zone). */
+  fieldPos?: number;
 }
 
 export type Phase = 'pregame' | 'live' | 'break' | 'final';
-export type BreakKind = 'timeout' | 'mandatory' | 'quarter' | 'halftime' | 'overtime' | 'review';
+export type BreakKind =
+  | 'timeout'
+  | 'mandatory' // media / TV timeout
+  | 'quarter'
+  | 'halftime'
+  | 'overtime'
+  | 'review'
+  | 'twominute' // football two-minute warning
+  | 'inning' // baseball: between half-innings
+  | 'pitching'; // baseball: pitching change
 
 export interface GameInfo {
   id: string;
   home: Team;
   away: Team;
   channel: ChannelRef;
-  /** Scheduled tip time, slate-clock ms. */
+  /** Scheduled start time, slate-clock ms. */
   scheduledStart: number;
+  /** Defaults to basketball. */
+  sport?: SportId;
 }
 
 /** Reduced state of one game as of some event (feed view or on-screen view). */
@@ -92,6 +119,12 @@ export interface GameSnapshot {
   recentScoring: Array<[number, Side, number]>;
   lastEvent?: FeedEvent;
   lastEventAt: number;
+  /** Baseball: outs and runners (bitmask). */
+  outs?: number;
+  bases?: number;
+  /** Football: team with the ball, and yards from its own goal line. */
+  possession?: Side;
+  fieldPos?: number;
 }
 
 /** Everything the director derives about a game at a moment in time. */

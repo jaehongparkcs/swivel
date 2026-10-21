@@ -1,14 +1,16 @@
-import type { BreakKind, FeedEvent, GameSnapshot } from './types';
+import { NBA } from './sports/nba';
+import type { Sport } from './sports/sport';
+import type { FeedEvent, GameSnapshot } from './types';
 
 const MANDATORY_WINDOWS = [420, 180]; // first dead ball under 7:00 and under 3:00
 const RECENT_SCORING_KEEP = 16;
 
-export function initialSnapshot(id: string): GameSnapshot {
+export function initialSnapshot(id: string, clock = 720): GameSnapshot {
   return {
     id,
     phase: 'pregame',
     period: 1,
-    clock: 720,
+    clock,
     clockRunning: false,
     homeScore: 0,
     awayScore: 0,
@@ -19,18 +21,12 @@ export function initialSnapshot(id: string): GameSnapshot {
   };
 }
 
-function breakForPeriodEnd(e: FeedEvent): BreakKind {
-  if (e.period === 2) return 'halftime';
-  if (e.period >= 4) return 'overtime';
-  return 'quarter';
-}
-
 function satisfiedWindows(clock: number): number {
   return MANDATORY_WINDOWS.filter((w) => clock < w).length;
 }
 
 /** Pure reducer: apply one feed event to a game snapshot. */
-export function reduce(s: GameSnapshot, e: FeedEvent): GameSnapshot {
+export function reduce(s: GameSnapshot, e: FeedEvent, sport: Sport = NBA): GameSnapshot {
   const next: GameSnapshot = {
     ...s,
     period: e.period,
@@ -41,6 +37,10 @@ export function reduce(s: GameSnapshot, e: FeedEvent): GameSnapshot {
     lastEvent: e,
     lastEventAt: e.t,
   };
+  if (e.outs !== undefined) next.outs = e.outs;
+  if (e.bases !== undefined) next.bases = e.bases;
+  if (e.possession !== undefined) next.possession = e.possession;
+  if (e.fieldPos !== undefined) next.fieldPos = e.fieldPos;
 
   switch (e.type) {
     case 'tipoff':
@@ -59,13 +59,15 @@ export function reduce(s: GameSnapshot, e: FeedEvent): GameSnapshot {
       next.mandatoryDone = Math.max(s.mandatoryDone, satisfiedWindows(e.clock));
       break;
     case 'review':
+    case 'two_minute_warning':
+    case 'pitching_change':
       next.phase = 'break';
-      next.breakKind = 'review';
+      next.breakKind = e.type === 'review' ? 'review' : e.type === 'two_minute_warning' ? 'twominute' : 'pitching';
       next.breakStartedAt = e.t;
       break;
     case 'period_end':
       next.phase = 'break';
-      next.breakKind = breakForPeriodEnd(e);
+      next.breakKind = sport.breakForPeriodEnd(e);
       next.breakStartedAt = e.t;
       next.clockRunning = false;
       break;
@@ -90,7 +92,7 @@ export function reduce(s: GameSnapshot, e: FeedEvent): GameSnapshot {
   }
 
   next.mandatoryArmed =
-    next.phase === 'live' && next.period <= 4 && satisfiedWindows(next.clock) > next.mandatoryDone;
+    sport.mediaWindows && next.phase === 'live' && next.period <= 4 && satisfiedWindows(next.clock) > next.mandatoryDone;
   return next;
 }
 
@@ -103,8 +105,11 @@ export class GameTimeline {
   private snapshots: GameSnapshot[] = [];
   private readonly empty: GameSnapshot;
 
-  constructor(readonly gameId: string) {
-    this.empty = initialSnapshot(gameId);
+  constructor(
+    readonly gameId: string,
+    private readonly sport: Sport = NBA,
+  ) {
+    this.empty = initialSnapshot(gameId, sport.startClock);
   }
 
   push(e: FeedEvent): void {
@@ -113,7 +118,7 @@ export class GameTimeline {
     const ev = last && e.t < last.t ? { ...e, t: last.t } : e; // never go back in time
     const prev = this.snapshots[this.snapshots.length - 1] ?? this.empty;
     this.events.push(ev);
-    this.snapshots.push(reduce(prev, ev));
+    this.snapshots.push(reduce(prev, ev, this.sport));
   }
 
   get size(): number {

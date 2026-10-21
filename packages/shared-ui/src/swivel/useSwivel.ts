@@ -44,7 +44,11 @@ const TICK_MS = 250;
  */
 export function useSwivel(config: DemoConfig, initialPrefs: TeamPrefs) {
   const lag = config.resumeLagMs;
-  const slate = useMemo(() => buildSlate(config.seed, 8, { resumeLagMs: lag }), [config.seed, lag?.[0], lag?.[1]]);
+  const sports = config.sports?.join(',');
+  const slate = useMemo(
+    () => buildSlate(config.seed, 8, { resumeLagMs: lag, sports: config.sports }),
+    [config.seed, lag?.[0], lag?.[1], sports],
+  );
   const source = useMemo(() => new ReplayLineupSource(slate), [slate]);
   const director = useMemo(() => new Director(source.games(), initialPrefs, {}, loadTaste()), [source]);
 

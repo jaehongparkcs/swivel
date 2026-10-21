@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { TEAMS, type Loyalty, type TeamPrefs } from '@swivel/director';
+import { ALL_TEAMS, MLB_TEAMS, NFL_TEAMS, type GameInfo, type Loyalty, type Team, type TeamPrefs } from '@swivel/director';
 import { fb, px } from './theme';
 
 export const TEAM_COLS = 4;
@@ -10,9 +10,26 @@ export const LOYALTIES: Array<{ id: Loyalty; label: string; detail: string }> = 
   { id: 'drama', label: 'Best game on', detail: 'Always chase the tightest game' },
 ];
 
-/** Focus grid: rows 0-3 teams, row 4 loyalty + multiview, row 5 done + forget learning. */
-export function teamsGrid(): number[] {
-  return [TEAM_COLS, TEAM_COLS, TEAM_COLS, TEAM_COLS, 4, 2];
+/** Tonight's teams, in league order (all 16 basketball teams on a basketball night). */
+export function tonightsTeams(games: GameInfo[]): Team[] {
+  const playing = new Set(games.flatMap((g) => [g.home.code, g.away.code]));
+  return ALL_TEAMS.filter((t) => playing.has(t.code));
+}
+
+export function teamRows(teams: Team[]): number {
+  return Math.ceil(teams.length / TEAM_COLS);
+}
+
+/** Focus grid: team rows, then loyalty + multiview, then done + forget learning. */
+export function teamsGrid(teams: Team[]): number[] {
+  const rows = Array.from({ length: teamRows(teams) }, (_, r) => Math.min(TEAM_COLS, teams.length - r * TEAM_COLS));
+  return [...rows, 4, 2];
+}
+
+function sportTag(code: string): string {
+  if (NFL_TEAMS.some((t) => t.code === code)) return 'Football';
+  if (MLB_TEAMS.some((t) => t.code === code)) return 'Baseball';
+  return 'Basketball';
 }
 
 export function cycleTeam(prefs: TeamPrefs, code: string): TeamPrefs {
@@ -31,14 +48,17 @@ interface Learned {
   signals: number;
 }
 
-export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPrefs; focus: [number, number]; learned: Learned }) {
+export default function TeamsScreen({ prefs, focus, learned, teams }: { prefs: TeamPrefs; focus: [number, number]; learned: Learned; teams: Team[] }) {
   const [fr, fc] = focus;
+  const optRow = teamRows(teams);
+  const doneRow = optRow + 1;
+  const mixed = new Set(teams.map((t) => sportTag(t.code))).size > 1;
   return (
     <View style={styles.screen}>
       <Text style={styles.h1}>Your teams</Text>
       <Text style={styles.lede}>Press OK to cycle a team: favorite, then like, then off. Swivel keeps your favorites on screen unless they're on a break or another game is going down to the wire.</Text>
       <View style={styles.grid}>
-        {TEAMS.map((t, i) => {
+        {teams.map((t, i) => {
           const r = Math.floor(i / TEAM_COLS);
           const c = i % TEAM_COLS;
           const focused = fr === r && fc === c;
@@ -60,7 +80,9 @@ export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPref
                         ? 'Learned: you watch them'
                         : learned.dislikes.includes(t.code)
                           ? 'Learned: you skip them'
-                          : t.code}
+                          : mixed
+                            ? `${t.code} · ${sportTag(t.code)}`
+                            : t.code}
                 </Text>
               </View>
             </View>
@@ -70,7 +92,7 @@ export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPref
       <View style={styles.optionsRow}>
         {LOYALTIES.map((l, c) => {
           const on = prefs.loyalty === l.id;
-          const focused = fr === 4 && fc === c;
+          const focused = fr === optRow && fc === c;
           return (
             <View key={l.id} style={[styles.option, on && styles.optionOn, focused && styles.optionFocused]}>
               <Text style={[styles.optionLabel, on && { color: fb.ink }]}>{l.label}</Text>
@@ -78,17 +100,17 @@ export default function TeamsScreen({ prefs, focus, learned }: { prefs: TeamPref
             </View>
           );
         })}
-        <View style={[styles.option, prefs.multiview && styles.optionOn, fr === 4 && fc === 3 && styles.optionFocused]}>
+        <View style={[styles.option, prefs.multiview && styles.optionOn, fr === optRow && fc === 3 && styles.optionFocused]}>
           <Text style={[styles.optionLabel, prefs.multiview && { color: fb.ink }]}>{`Split & quad: ${prefs.multiview ? 'on' : 'off'}`}</Text>
           <Text style={[styles.optionDetail, prefs.multiview && { color: fb.inkHigh }]} numberOfLines={2}>When 2+ games are in crunch time</Text>
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={[styles.done, fr === 5 && fc === 0 && styles.doneFocused]}>
-          <Text style={[styles.doneText, fr === 5 && fc === 0 && { color: fb.ink }]}>Back to games</Text>
+        <View style={[styles.done, fr === doneRow && fc === 0 && styles.doneFocused]}>
+          <Text style={[styles.doneText, fr === doneRow && fc === 0 && { color: fb.ink }]}>Back to games</Text>
         </View>
-        <View style={[styles.done, { marginLeft: px(20) }, fr === 5 && fc === 1 && styles.doneFocused]}>
-          <Text style={[styles.doneText, fr === 5 && fc === 1 && { color: fb.ink }]}>Forget what Swivel learned</Text>
+        <View style={[styles.done, { marginLeft: px(20) }, fr === doneRow && fc === 1 && styles.doneFocused]}>
+          <Text style={[styles.doneText, fr === doneRow && fc === 1 && { color: fb.ink }]}>Forget what Swivel learned</Text>
         </View>
         <Text style={styles.learnNote}>
           {learned.signals

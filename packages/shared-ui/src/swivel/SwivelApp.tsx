@@ -9,9 +9,8 @@ import Stage, { STAGE_W } from './Stage';
 import GameRail from './GameRail';
 import DirectorCaption from './DirectorCaption';
 import StatusBar from './StatusBar';
-import TeamsScreen, { cycleTeam, LOYALTIES, TEAM_COLS, teamsGrid } from './TeamsScreen';
+import TeamsScreen, { cycleTeam, LOYALTIES, TEAM_COLS, teamRows, teamsGrid, tonightsTeams } from './TeamsScreen';
 import { fb, px } from './theme';
-import { TEAMS } from '@swivel/director';
 
 type Focus = { zone: 'rail'; index: number } | { zone: 'stage'; index: number };
 
@@ -31,9 +30,11 @@ export default function SwivelApp() {
     [fbk.slate],
   );
 
+  const teams = useMemo(() => tonightsTeams(fbk.slate.games), [fbk.slate]);
+
   // Latest state for the key handler without re-subscribing every tick.
-  const live = useRef({ view, focus, screen, teamsFocus, prefs, order, fbk });
-  live.current = { view, focus, screen, teamsFocus, prefs, order, fbk };
+  const live = useRef({ view, focus, screen, teamsFocus, prefs, order, fbk, teams });
+  live.current = { view, focus, screen, teamsFocus, prefs, order, fbk, teams };
 
   useEffect(() => {
     const onKey = (key: SupportedKeys) => {
@@ -49,7 +50,8 @@ export default function SwivelApp() {
       }
 
       if (s.screen === 'teams') {
-        const grid = teamsGrid();
+        const grid = teamsGrid(s.teams);
+        const optRow = teamRows(s.teams);
         const [r, c] = s.teamsFocus;
         const clampC = (row: number, col: number) => Math.min(col, grid[row] - 1);
         if (key === SupportedKeys.Back) return setScreen('watch');
@@ -59,11 +61,11 @@ export default function SwivelApp() {
         if (key === SupportedKeys.Right) return setTeamsFocus([r, Math.min(grid[r] - 1, c + 1)]);
         if (key === SupportedKeys.Enter) {
           let next = s.prefs;
-          if (r < 4) next = cycleTeam(s.prefs, TEAMS[r * TEAM_COLS + c].code);
-          else if (r === 4 && c < 3) next = { ...s.prefs, loyalty: LOYALTIES[c].id };
-          else if (r === 4 && c === 3) next = { ...s.prefs, multiview: !s.prefs.multiview };
-          else if (r === 5 && c === 0) return setScreen('watch');
-          else if (r === 5 && c === 1) return s.fbk.resetLearning();
+          if (r < optRow) next = cycleTeam(s.prefs, s.teams[r * TEAM_COLS + c].code);
+          else if (r === optRow && c < 3) next = { ...s.prefs, loyalty: LOYALTIES[c].id };
+          else if (r === optRow && c === 3) next = { ...s.prefs, multiview: !s.prefs.multiview };
+          else if (r === optRow + 1 && c === 0) return setScreen('watch');
+          else if (r === optRow + 1 && c === 1) return s.fbk.resetLearning();
           setPrefsState(next);
           s.fbk.setPrefs(next);
         }
@@ -111,7 +113,7 @@ export default function SwivelApp() {
   if (screen === 'teams') {
     return (
       <View style={styles.root}>
-        <TeamsScreen prefs={prefs} focus={teamsFocus} learned={view.learned} />
+        <TeamsScreen prefs={prefs} focus={teamsFocus} learned={view.learned} teams={teams} />
       </View>
     );
   }

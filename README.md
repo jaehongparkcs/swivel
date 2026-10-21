@@ -1,6 +1,6 @@
 # Swivel
 
-**Autopilot for a night of live basketball on Fire TV.** When your game goes to commercial, Swivel moves you to the best game that's live. When play resumes, it brings you back. When two or four games go down to the wire at once, it splits the screen automatically.
+**Autopilot for a night of live sports on Fire TV: basketball, football and baseball.** When your game goes to commercial, Swivel moves you to the best game that's live. When play resumes, it brings you back. When two or four games go down to the wire at once, it splits the screen automatically.
 
 NBA CrunchTime and NFL RedZone are one channel for everyone. Swivel is personal: built around your teams, across your own lineup, with no commercials.
 
@@ -19,6 +19,19 @@ Built for the Amazon Developer Hackathon (Fire TV track) on **Vega OS** with Rea
 - **Learns from your remote.** Picking a game (OK) counts toward the teams in it (leaning toward the one you already like, so it can tell "likes this team" from "liked this game"), skipping one (Fast-forward) counts against it, and holding one (Play/Pause) counts for it. Which way you move, toward tight games or back to your teams, tunes how much drama outweighs loyalty. This runs entirely on the device: no account, no network. It says what it learned ("Learned: you like LOU"), shows it on the Your teams screen, and you can make it forget.
 - **What you missed.** Every switch carries a one-line catch-up generated from the play-by-play since you last saw that game: *"While you were away, 4:45: LVJ cut a 10-point lead to 1."* For a game you haven't seen yet, it's *"How we got here."* It picks the one storyline that matters (a lead change, a comeback, a run, a team pulling away) and stays silent when you only missed a commercial. Rules over play-by-play, no LLM, so it works offline and never makes up a play.
 - **Explains itself.** Every switch shows a reason, for example *"HNL @ TPA went to commercial. Full screen: KCS @ LVJ, 4th 2:52, 1-pt game."*
+
+### Three sports, one autopilot
+
+Hops, multiview, learning and recaps are shared; each sport plugs in its own rules through a `Sport` (`packages/director/src/sports/`):
+
+| | Basketball | Football | Baseball |
+| --- | --- | --- | --- |
+| Clock | 4 x 12:00 | 4 x 15:00, 10:00 sudden-death OT | none: half-innings, outs, runners |
+| Commercials | timeouts, media timeouts (7:00 / 3:00 windows), quarter breaks, halftime | TV timeouts after scores, kickoffs and some changes of possession, the two-minute warning, quarter breaks, halftime | every half-inning, mid-inning pitching changes |
+| Win probability | margin + time | margin + time + the drive in progress (expected points from field position) | margin + innings left + the base-out state (RE24 run expectancy) |
+| Crunch time | 4th quarter / OT, high leverage | 4th quarter / OT, high leverage | 8th inning on, high leverage (a one-run 9th) |
+
+Football's "double-dip" (score, commercial, kickoff, commercial) is handled: Swivel waits out the second break instead of returning for 25 seconds of kickoff. A mixed night is opt-in: set `DEFAULT_DEMO = MIXED_DEMO` in `demoConfig.ts` (or `?mixed=1` on web). The rail marks each game's sport, the tile draws a court, a field (ball at the line of scrimmage) or a diamond (occupied bases lit), and the Your teams screen lists tonight's teams.
 
 ### Why not computer vision for break detection?
 
@@ -48,11 +61,12 @@ On web: arrow keys, Enter, Space (Play/Pause), `]` (Fast-forward), `[` (Rewind),
 ```
 packages/director      pure TypeScript engine, no platform deps (unit tested)
   gameState.ts         play-by-play reducer; feed view vs. on-screen view per channel delay
-  winprob.ts           win probability + leverage index
+  sports/              per-sport rules: win probability, leverage, breaks, labels (basketball, football, baseball)
+  winprob.ts           basketball win probability + leverage index
   breakModel.ts        stoppage durations, break hazard (media-timeout windows, runs, late game)
   director.ts          the policy: break hops, anchor/return, upgrades, must-see, split/quad, audio
   lineup.ts            LineupSource / PlaybackController interfaces (EPG + data feed adapters)
-  sim/                 deterministic possession-level game simulator for a fictional league
+  sim/                 deterministic simulators for three fictional leagues (possessions, plays, plate appearances)
 packages/shared-ui/src/swivel   the 10-foot UI (stage, tiles, game rail, caption, teams)
 apps/vega              Vega OS app shell
 apps/expo-multi-tv     web / Android TV shell (used for fast iteration)
@@ -82,9 +96,10 @@ npx tsx scripts/runHeadless.ts 51 TPA    # print every decision over a full nigh
 npx tsx scripts/findSlate.ts 1 200       # search for demo-worthy nights
 npx tsx scripts/findDemo.ts 1 150        # search nights x favorite teams for the best demo
 npx tsx scripts/seamless.ts 40           # count flashes and short-lived screens over 40 nights
+SPORTS=nba,nfl,mlb npx tsx scripts/runHeadless.ts 45 MEM   # any script, on a mixed night
 ```
 
-Demo knobs are in `packages/shared-ui/src/swivel/demoConfig.ts`. The default is night `51` with Tampa as your team at 8x replay: a hop and return, split to three-up, your team's tile holding through a timeout, and Tampa going to overtime. `scripts/findDemo.ts` found it. On web, override with `?seed=&fav=TPA&speed=&start=<seconds>&lag=<min>-<max>` (resume-report lag in seconds).
+Demo knobs are in `packages/shared-ui/src/swivel/demoConfig.ts`. The default is night `51` with Tampa as your team at 8x replay: a hop and return, split to three-up, your team's tile holding through a timeout, and Tampa going to overtime. `scripts/findDemo.ts` found it. On web, override with `?seed=&fav=TPA&speed=&start=<seconds>&lag=<min>-<max>` (resume-report lag in seconds), `&sports=nba,nfl,mlb`, or `?mixed=1` for the mixed demo night (45, Memphis football as your team: extra-inning baseball, a tied 4th quarter and your team joining a three-up).
 
 ## License
 

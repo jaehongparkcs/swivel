@@ -5,13 +5,14 @@
 
 ---
 
-## Swivel: autopilot for a night of live basketball
+## Swivel: autopilot for a night of live sports
 
 ### Inspiration
 On a busy night there are ten games on and you care about one team. Every timeout you're staring at the same commercials while somewhere else a game is coming down to the last possession. NBA CrunchTime and NFL RedZone solve this with one channel that's the same for everyone. Swivel is personal: it follows *your* teams, across *your* live TV lineup, with no commercials and without touching the remote.
 
 ### What it does
-- **Hops on breaks.** When your game goes to a timeout, media timeout, quarter break or halftime, Swivel moves you to the best live game. When play resumes, it brings you back.
+- **Basketball, football and baseball.** Each sport brings its own rules: media timeouts, the two-minute warning and TV timeouts after scores, inning breaks and pitching changes. One night can mix all three.
+- **Hops on breaks.** When your game goes to commercial, Swivel moves you to the best live game. When play resumes, it brings you back.
 - **Knows before your stream does.** Play-by-play data runs 25–55 s ahead of the broadcast. Swivel uses that lead to switch at exactly the right moment. It shows a real "Back in 0:18" when it already knows play has resumed, and never invents a countdown.
 - **Never takes you into a commercial.** If another game's feed already shows a timeout your stream hasn't reached, that game is skipped.
 - **Split, three-up and quad.** When several games are in crunch time, the screen splits automatically, with your team on the big tile and the audio. A game on a timeout keeps its tile under a "Back in" card while the audio moves to live action; longer breaks take it out of the grid.
@@ -21,13 +22,13 @@ On a busy night there are ten games on and you care about one team. Every timeou
 
 ### How we built it
 - **Vega OS app in React Native**, built on Amazon's multi-TV sample. The same UI also runs on web, for fast iteration.
-- **`@swivel/director`**: a pure-TypeScript engine with no platform dependencies, covered by 24 unit tests:
+- **`@swivel/director`**: a pure-TypeScript engine with no platform dependencies, covered by 29 unit tests:
   - a play-by-play reducer that keeps two views of every game: what the feed knows, and what your stream shows (feed time minus channel delay);
-  - closed-form win probability and a **leverage index** (how much one possession swings the game);
-  - a break model built from basketball's rules (media-timeout windows at 7:00 and 3:00, coaches stopping runs, late-game timeouts);
+  - closed-form win probability and a **leverage index** (how much the next play swings the game) for each sport: margin and time in basketball, plus the drive in progress (field position) in football, and innings left plus the base-out state (run expectancy) in baseball;
+  - break models built from each sport's rules (basketball's media-timeout windows, football's TV timeouts and two-minute warning, baseball's inning breaks and pitching changes);
   - the director policy, with minimum time on a game, a margin a new game must beat, hysteresis on what counts as crunch time, an anchor/return to your game, and stable multiview tiles;
   - an on-device taste learner and a play-by-play recap generator.
-- **A deterministic game simulator** (fictional league, realistic scoring and stoppages) drives the demo, so it carries no league footage or data rights. Search scripts find nights that exercise every behavior.
+- **Deterministic simulators for three fictional leagues** (realistic scoring and stoppages) drives the demo, so it carries no league footage or data rights. Search scripts find nights that exercise every behavior.
 
 ### Challenges
 - **Thrashing.** Early versions bounced between games every few seconds. Fixes: a minimum time on each game, a margin a challenger must beat, a single "anchor" game to return to, and different thresholds for entering and leaving crunch time. Later we measured it: a script replays 40 simulated nights and counts screens that last under a minute. Settle time after each change, "back soon" detection from the feed, and timeouts that keep their tile cut that from 3.1 to 1.4 per hour.
@@ -36,7 +37,7 @@ On a busy night there are ten games on and you care about one team. Every timeou
 
 ### Accomplishments
 - A director that feels like a human producer: it never jumps into a commercial, never ping-pongs, and always comes back to your team.
-- 24 unit tests, plus headless tools that replay whole nights and print every decision.
+- 29 unit tests, plus headless tools that replay whole nights and print every decision.
 
 ### What we learned
 - Vega's React Native stack made a TV-first, remote-driven UI straightforward, and the multi-TV sample let us iterate on the web and ship on Vega from one codebase.
@@ -46,7 +47,7 @@ On a busy night there are ten games on and you care about one team. Every timeou
 - **Real lineup and data:** build the `LineupSource` from the Vega **EPG Provider** (which channels in your lineup carry tonight's games) and drive the primary tile with **Vega Channel Tuning**.
 - **Delay calibration:** use HLS program-date-time (or platform-side scorebug reading) to measure each channel's lag automatically.
 - **Alexa:** "Alexa, follow Tampa and anything within five in the fourth" via Content Launcher.
-- More sports (NFL and college football have very predictable break structures).
+- More sports (hockey, soccer's halftime-only breaks, college football).
 
 ### Built with
 TypeScript · React Native · Vega OS SDK · Vega Virtual Device · react-tv-space-navigation · Expo (web target)

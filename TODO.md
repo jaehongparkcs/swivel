@@ -68,12 +68,12 @@ Replaces the hand-set watch-score weights. **It does not touch timing:** break h
 - [ ] **Deliverables:** module + tests in `packages/director`, an evaluation script, and a results table in the README.
 
 ### 6. NFL support (MLB if time allows)
-- [ ] Generalize sport-specific parts (period structure, clock, break rules, leverage scale) behind a `Sport` interface.
-- [ ] NFL break model: commercials after scores, after kickoffs, after turnovers or changes of possession, at the two-minute warning, at quarter ends, at halftime, and on challenges and reviews.
-- [ ] NFL simulator: drive-level, realistic scoring.
-- [ ] NFL win probability: down/distance/field position is ideal; a margin-and-time model is acceptable for v1.
-- [ ] A mixed NBA + NFL demo night; rail and scorebug show the sport; tests.
-- [ ] MLB: breaks between half-innings, pitching changes, leverage by inning, outs and runners.
+- [x] Generalize sport-specific parts (period structure, clock, break rules, leverage scale) behind a `Sport` interface.
+- [x] NFL break model: commercials after scores, after kickoffs, after turnovers or changes of possession, at the two-minute warning, at quarter ends, at halftime, and on challenges and reviews.
+- [x] NFL simulator: play-level drives, realistic scoring.
+- [x] NFL win probability: margin, time, possession and field position (down/distance not yet).
+- [x] A mixed NBA + NFL + MLB demo night (`MIXED_DEMO`); rail and scorebug show the sport; tests.
+- [x] MLB: breaks between half-innings, pitching changes, leverage by inning, outs and runners.
 
 ### 7. Keep learned taste across restarts on Vega
 - [ ] It's in memory only on Vega (web uses localStorage). Use Vega's key-value storage once confirmed in the docs, and save `TasteSnapshot` on every change.

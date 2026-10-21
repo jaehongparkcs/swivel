@@ -36,7 +36,8 @@ setInterval(() => {
   - **Multiview:** split, three-up or quad from the games on air. A game on a timeout keeps its tile (the UI covers the commercial with a "Back in" card) as long as another tile has action; longer breaks take it out of the grid until play resumes. Tiles keep their positions, and audio stays with your team or a live tile.
 - **Learns from the remote.** Picks, skips and holds update team affinities and a drama-vs-loyalty preference, on the device, and it announces what it learned.
 - **"What you missed."** One-line catch-ups generated from the play-by-play (comebacks, runs, lead changes, a team pulling away). It's silent when you only missed a commercial.
-- **Simulator.** A deterministic, possession-level pro-basketball simulator for a fictional league, with realistic scoring (about 113 points a team) and realistic stoppages. Use it for demos, tests and tuning, with no league data rights needed.
+- **Three sports.** Basketball, football and baseball plug in through a `Sport` (`src/sports/`): win probability and leverage, break lengths and hazard, labels, what counts as late, and recap wording. Football's model adds the drive in progress (expected points from field position); baseball's has no clock and uses innings left plus the base-out state (RE24). `GameInfo.sport` picks one; unset means basketball.
+- **Simulators.** Deterministic simulators for three fictional leagues with realistic scoring and stoppages: possession-level basketball (about 113 points a team), play-level football (downs, field position, TV timeouts, the two-minute warning; about 19 points a team, 5% overtime) and plate-appearance baseball (runners, double plays, sac flies, pitching changes, the extra-inning runner; about 4 runs a team). `buildSlate(seed, 8, { sports: ['nba', 'nfl', 'mlb'] })` builds a mixed night. Use them for demos, tests and tuning, with no league data rights needed.
 
 ## Plugging in real data
 
@@ -60,7 +61,7 @@ On Fire TV, `games()` comes from the Vega EPG Provider plus a licensed sports da
 cd packages/director
 npx tsx --test test/*.test.ts   # or: yarn workspace @swivel/director test
 # (the npm scripts below also work from this folder)
-npm test                          # 24 unit tests
+npm test                          # 29 unit tests
 npm run headless -- 51 TPA        # print every decision over a simulated night
 npm run demo-timeline -- 51 TPA 5960 8   # decisions at real-time offsets for a given start/speed
 npm run find-slate -- 1 200       # nights with the most split/quad action
@@ -72,19 +73,20 @@ npm run find-demo -- 1 150        # (night, favorite team) pairs that make a goo
 ```
 src/types.ts        FeedEvent, GameSnapshot, GameInsight, Decision, DirectorView
 src/gameState.ts    reducer + per-game timeline (feed vs screen views, clock interpolation)
-src/winprob.ts      win probability + leverage index
+src/sports/         per-sport rules (basketball, football, baseball)
+src/winprob.ts      basketball win probability + leverage index
 src/breakModel.ts   stoppage durations, hazard, runs
 src/director.ts     the policy
 src/learner.ts      on-device taste learning from remote presses
 src/recap.ts        "What you missed" catch-ups
 src/lineup.ts       LineupSource / PlaybackController + replay source
-src/sim/            simulator, fictional league, slates
+src/sim/            simulators, fictional leagues, slates
 ```
 
 ## Roadmap
 
 - Pluggable recommender: replace the hand-set watch-score weights with an online-learned ranker trained on implicit feedback (picks, skips, dwell time), evaluated against simulated viewers with known preferences.
-- More sports: NFL (two-minute warning, scoring and turnover breaks) and MLB (half-inning breaks).
+- Football down and distance in win probability; real league feeds through `LineupSource`.
 
 ## License
 

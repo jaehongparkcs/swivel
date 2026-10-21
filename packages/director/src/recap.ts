@@ -1,5 +1,6 @@
 import type { FeedEvent, GameInfo, Side } from './types';
 import { durationLabel } from './explain';
+import { sportOf } from './sports';
 
 /**
  * "What you missed": a one-line catch-up generated on the device from the
@@ -25,7 +26,10 @@ export function buildRecap(info: GameInfo, events: FeedEvent[], awayMs: number, 
   const endAway = last.awayScore;
   const ptsHome = endHome - startHome;
   const ptsAway = endAway - startAway;
-  if (ptsHome + ptsAway < 5) return undefined;
+  const sport = sportOf(info);
+  const k = sport.recap;
+  const unit = sport.unit.one;
+  if (ptsHome + ptsAway < k.minTotal) return undefined;
 
   const code = (s: Side) => (s === 'home' ? info.home.code : info.away.code);
   const startMargin = startHome - startAway;
@@ -60,23 +64,23 @@ export function buildRecap(info: GameInfo, events: FeedEvent[], awayMs: number, 
   let text: string;
   if (leader && startMargin !== 0 && Math.sign(startMargin) !== Math.sign(endMargin)) {
     const deficit = Math.abs(startMargin);
-    const how = run.pts >= 7 && run.side === leader ? ` on a ${run.pts}–0 run` : '';
+    const how = run.pts >= k.run - 1 && run.side === leader ? ` on ${k.runPhrase(run.pts)}` : '';
     text =
-      deficit >= 4
-        ? `${code(leader)} erased a ${deficit}-point deficit${how} and leads. ${scoreNow}.`
+      deficit >= k.comeback
+        ? `${code(leader)} erased a ${deficit}-${unit} deficit${how} and leads. ${scoreNow}.`
         : `${code(leader)} took the lead${how}. ${scoreNow}.`;
   } else if (!leader) {
     const tier: Side | undefined = startMargin > 0 ? 'away' : startMargin < 0 ? 'home' : undefined;
     text =
-      tier && Math.abs(startMargin) >= 4
+      tier && Math.abs(startMargin) >= k.comeback
         ? `${code(tier)} came back from ${Math.abs(startMargin)} down to tie it at ${endHome}.`
         : `Back and forth: tied at ${endHome}.`;
-  } else if (Math.abs(endMargin) - Math.abs(startMargin) >= 6) {
+  } else if (Math.abs(endMargin) - Math.abs(startMargin) >= k.pullAway) {
     text = `${code(leader)} pulled away, ${ptsFor}–${ptsAgainst} over that stretch. ${scoreNow}.`;
-  } else if (Math.abs(startMargin) - Math.abs(endMargin) >= 5) {
-    text = `${code(outscorer)} cut a ${Math.abs(startMargin)}-point lead to ${Math.abs(endMargin)}. ${scoreNow}.`;
-  } else if (run.pts >= 8 && run.side) {
-    text = `${code(run.side)} went on a ${run.pts}–0 run. ${scoreNow}.`;
+  } else if (Math.abs(startMargin) - Math.abs(endMargin) >= k.cut) {
+    text = `${code(outscorer)} cut a ${Math.abs(startMargin)}-${unit} lead to ${Math.abs(endMargin)}. ${scoreNow}.`;
+  } else if (run.pts >= k.run && run.side) {
+    text = `${code(run.side)} ${sport.id === 'nba' ? 'went on' : 'scored'} ${k.runPhrase(run.pts)}. ${scoreNow}.`;
   } else if (leadChanges >= 2) {
     text = `The lead changed hands ${leadChanges} times. ${scoreNow}.`;
     return { label: firstLook ? `How we got here · last ${span}` : `While you were away · ${span}`, text };

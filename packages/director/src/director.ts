@@ -1,10 +1,11 @@
-import { BREAK_EVENT_TYPES, breakHazard, breakRemainingMs, currentRun, isCommercial } from './breakModel';
-import { BREAK_NAMES, durationLabel, matchup, situation, whyWatch } from './explain';
+import { BREAK_EVENT_TYPES, breakRemainingMs, currentRun, isCommercial } from './breakModel';
+import { breakName, durationLabel, matchup, situation, whyWatch } from './explain';
 import { GameTimeline } from './gameState';
 import { TasteLearner, type Lesson, type TasteSnapshot } from './learner';
 import { buildRecap } from './recap';
-import { homeWinProb, leverageIndex } from './winprob';
+import { sportOf } from './sports';
 import type {
+  BreakKind,
   Decision,
   DecisionKind,
   DirectorConfig,
@@ -46,11 +47,15 @@ const SETTLE_MS = 45_000;
 const BACK_SOON_MS = 45_000;
 /** Without a known resume, only trust the break-length estimate this close to the end. */
 const BACK_SOON_EST_MS = 20_000;
+/** Don't go back to a game whose next break is already in the feed and this close. */
+const RETURN_GUARD_MS = 60_000;
 /** Weight on break risk when picking a fill-in game, so it isn't gone again in a minute. */
 const FILL_IN_RISK_WEIGHT = 1.5;
 /** A must-see game stays must-see until its leverage falls below this. */
 const MUST_SEE_EXIT_LEVERAGE = 1.8;
 const MAX_DECISIONS = 60;
+/** Stoppages of a couple of minutes: a multiview tile waits them out in place. */
+const SHORT_BREAKS: BreakKind[] = ['timeout', 'mandatory', 'twominute', 'inning', 'pitching'];
 
 /** Score that makes a game worth watching right now, before preference. */
 function dramaScore(leverage: number, tags: InsightTag[]): number {
@@ -101,7 +106,7 @@ export class Director {
     this.learner = new TasteLearner(taste);
     for (const g of games) {
       this.games.set(g.id, g);
-      this.timelines.set(g.id, new GameTimeline(g.id));
+      this.timelines.set(g.id, new GameTimeline(g.id, sportOf(g)));
     }
     this.prefs = prefs;
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -237,15 +242,15 @@ export class Director {
 
   insight(gameId: string, t: number): GameInsight {
     const info = this.games.get(gameId)!;
+    const sport = sportOf(info);
     const tl = this.timelines.get(gameId)!;
     const tScreen = t - info.channel.delayMs;
     const screen = tl.snapshotAt(tScreen);
     const feed = tl.snapshotAt(t);
     const displayClock = tl.clockAt(tScreen);
-    const margin = screen.homeScore - screen.awayScore;
     const live = screen.phase === 'live' || screen.phase === 'break';
-    const leverage = live ? leverageIndex(margin, screen.period, displayClock) : 0;
-    const wp = screen.phase === 'pregame' ? 0.5 : homeWinProb(margin, screen.period, displayClock);
+    const leverage = live ? sport.leverage(screen, displayClock) : 0;
+    const wp = screen.phase === 'pregame' ? 0.5 : sport.homeWinProb(screen, displayClock);
 
     let breakIncomingInMs: number | undefined;
     if (screen.phase === 'live') {
@@ -268,17 +273,17 @@ export class Director {
     if (breakIncomingInMs !== undefined) tags.push('break-incoming');
     if (screen.mandatoryArmed) tags.push('mandatory-armed');
     if (live) {
-      if (screen.period >= 5) tags.push('overtime');
-      if (screen.period >= 4 && leverage >= this.config.mustSeeLeverage) tags.push('crunch');
+      if (sport.overtime(screen)) tags.push('overtime');
+      if (sport.late(screen) && leverage >= this.config.mustSeeLeverage) tags.push('crunch');
       else if (leverage >= 1.6) tags.push('close');
-      if (leverage < 0.15 && screen.period >= 3) tags.push('blowout');
+      if (leverage < 0.15 && sport.blowoutStage(screen)) tags.push('blowout');
       const run = currentRun(screen);
-      if (run.points >= 8) tags.push('run');
+      if (run.points >= sport.runPoints) tags.push('run');
     }
     if (preference >= 1 && this.prefs.loyalty !== 'drama' && !tags.includes('blowout') && (live || screen.phase === 'break'))
       tags.push('team-game');
 
-    const hazard = breakIncomingInMs !== undefined ? 1 : breakHazard(screen, displayClock, leverage);
+    const hazard = breakIncomingInMs !== undefined ? 1 : sport.breakHazard(screen, displayClock, leverage);
     const base =
       dramaScore(leverage, tags) * this.learner.dramaWeight() +
       LOYALTY_WEIGHT[this.prefs.loyalty] * preference -
@@ -294,7 +299,7 @@ export class Director {
       leverage,
       breakRisk: hazard,
       breakIncomingInMs,
-      breakRemainingMs: breakRemainingMs(screen, tScreen),
+      breakRemainingMs: breakRemainingMs(screen, tScreen, sport.breakDurationMs),
       breakElapsedMs: screen.phase === 'break' && screen.breakStartedAt !== undefined ? tScreen - screen.breakStartedAt : undefined,
       resumeIncomingInMs,
       preference,
@@ -418,7 +423,7 @@ export class Director {
    */
   private held(g: GameInsight, byId: Map<string, GameInsight>): boolean {
     if (this.layout === 'single' || !this.slots.includes(g.info.id) || this.onAir(g)) return false;
-    const short = g.screen.breakKind === 'timeout' || g.screen.breakKind === 'mandatory' || this.backSoon(g);
+    const short = SHORT_BREAKS.includes(g.screen.breakKind!) || this.backSoon(g);
     return short && this.slots.some((o) => o !== g.info.id && this.onAir(byId.get(o)!));
   }
 
@@ -454,13 +459,13 @@ export class Director {
       // A fill-in game went to commercial while the game we left is nearly back:
       // go back now instead of flashing through a third game for a few seconds.
       const A = this.anchor ? byId.get(this.anchor) : undefined;
-      if (A && A.info.id !== P.info.id && this.backSoon(A)) {
+      if (A && A.info.id !== P.info.id && isCommercial(P.screen.breakKind) && this.backSoon(A)) {
         this.anchor = undefined;
         this.switchPrimary(
           t,
           A,
           'return',
-          `${BREAK_NAMES[P.screen.breakKind ?? 'timeout']} in ${matchup(P.info)}`,
+          `${breakName(P.info, P.screen.breakKind)} in ${matchup(P.info)}`,
           `${matchup(A.info)} is nearly back${A.resumeIncomingInMs !== undefined ? ` (in ${durationLabel(A.resumeIncomingInMs)})` : ''}, so heading there now.`,
         );
         return;
@@ -479,7 +484,7 @@ export class Director {
       // justify a hop if the alternative is clearly better than this game when live.
       const soft = (!isCommercial(P.screen.breakKind) && remaining < c.softBreakMs) || remaining < 20_000;
       if (soft && alt.watchScore < P.watchScore + 2 + c.upgradeMargin) return;
-      const breakName = BREAK_NAMES[P.screen.breakKind ?? 'timeout'];
+      const stoppage = breakName(P.info, P.screen.breakKind);
       const back =
         P.resumeIncomingInMs !== undefined
           ? `Back in ${durationLabel(P.resumeIncomingInMs)}.`
@@ -496,7 +501,7 @@ export class Director {
         t,
         alt,
         'break-hop',
-        `${breakName} in ${matchup(P.info)}`,
+        `${stoppage} in ${matchup(P.info)}`,
         `Switching to ${matchup(alt.info)} · ${situation(alt)}${why ? ` (${why})` : ''}. ${back}`,
       );
       return;
@@ -505,7 +510,8 @@ export class Director {
     // 3. The game we left for a stoppage is back: return if it's at least about as good.
     const R = this.anchor ? byId.get(this.anchor) : undefined;
     if (R && (R.screen.phase === 'final' || R.info.id === P.info.id)) this.anchor = undefined;
-    else if (R && this.eligible(R)) {
+    // Another break is about to hit that game (football's kickoff then TV timeout): wait it out.
+    else if (R && this.eligible(R) && !(R.breakIncomingInMs !== undefined && R.breakIncomingInMs < RETURN_GUARD_MS)) {
       this.anchor = undefined;
       const yours = R.tags.includes('team-game');
       const neverThere = this.anchorFromStartup;
@@ -661,11 +667,16 @@ export class Director {
     }
 
     if (next.length <= 1) {
-      const allCommercial = removed.length >= 2 && removed.every(([, r]) => r === 'went to commercial');
+      // The last tile left is on a break: that's the real reason we're leaving the grid.
+      const lone = next[0] ? byId.get(next[0]) : undefined;
+      const reasons: Array<[GameInsight, string]> = lone && !this.onAir(lone) ? [[lone, 'went to commercial'], ...removed] : removed;
+      const keepId = this.collapseTarget(byId, ranked, next[0])?.info.id;
+      const told = reasons.filter(([g, r]) => !(g.info.id === keepId && r === 'cooled off'));
+      const allCommercial = told.length >= 2 && told.every(([, r]) => r === 'went to commercial');
       const why = allCommercial
-        ? `${removed.length === 2 ? 'Both' : `All ${removed.length}`} games went to commercial`
-        : removed.map(([g, r]) => `${matchup(g.info)} ${r}`).join('; ');
-      this.collapseTo(t, byId, ranked, removed.length ? capitalize(why) : 'Back to full screen', next[0]);
+        ? `${told.length === 2 ? 'Both' : `All ${told.length}`} games went to commercial`
+        : told.map(([g, r]) => `${matchup(g.info)} ${r}`).join('; ');
+      this.collapseTo(t, byId, ranked, told.length ? capitalize(why) : 'Back to full screen', next[0]);
       return true;
     }
 
@@ -687,8 +698,15 @@ export class Director {
     return true;
   }
 
+  /** Where a collapsing grid lands. Never on a tile that is itself on a break; we come back to that one. */
+  private collapseTarget(byId: Map<string, GameInsight>, ranked: GameInsight[], keepId?: string): GameInsight | undefined {
+    const kept = keepId ? byId.get(keepId) : undefined;
+    return (kept && this.onAir(kept) ? kept : undefined) || ranked.find((g) => g.tags.includes('team-game')) || ranked[0];
+  }
+
   private collapseTo(t: number, byId: Map<string, GameInsight>, ranked: GameInsight[], title: string, keepId?: string): void {
-    const keep = (keepId && byId.get(keepId)) || ranked.find((g) => g.tags.includes('team-game')) || ranked[0];
+    const kept = keepId ? byId.get(keepId) : undefined;
+    const keep = this.collapseTarget(byId, ranked, keepId);
     const prevAudio = this.audio;
     const prevSlots = this.slots;
     this.layout = 'single';
@@ -702,7 +720,8 @@ export class Director {
     for (const id of this.slots) if (byId.get(id)?.screen.phase === 'break') this.benched.add(id);
     // Come back to your team if it's one of the tiles on a break, else to the game we were listening to.
     const yoursOnBreak = prevSlots.map((id) => byId.get(id)!).find((g) => g.tags.includes('team-game') && g.screen.phase === 'break');
-    const pending = yoursOnBreak ?? (prevAudio ? byId.get(prevAudio) : undefined);
+    const keptOnBreak = kept && kept.screen.phase === 'break' ? kept : undefined;
+    const pending = yoursOnBreak ?? keptOnBreak ?? (prevAudio ? byId.get(prevAudio) : undefined);
     if (pending && pending.info.id !== keep.info.id && pending.screen.phase === 'break') {
       this.anchor = pending.info.id;
       this.anchorFromStartup = false;
