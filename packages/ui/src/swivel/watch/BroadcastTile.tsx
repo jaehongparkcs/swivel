@@ -63,7 +63,8 @@ function BroadcastTile({ g, width, height, audio, focused, compact }: Props) {
     <View style={[styles.tile, { width, height }, focused && styles.focused]}>
       {/* Arena backdrop */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0A1424' }]} />
-      <Venue g={g} box={box} now={now} live={live} />
+      {/* Keyed by size: Vega draws rotated overflow-clipped views stale after a resize, so remount on layout change. */}
+      <Venue key={`${Math.round(width)}x${Math.round(height)}`} g={g} box={box} now={now} live={live} />
 
       {!live && g.screen.phase === 'break' && <BreakCard g={g} compact={compact} />}
       {g.screen.phase === 'final' && (
